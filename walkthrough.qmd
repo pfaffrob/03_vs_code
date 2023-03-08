@@ -30,3 +30,11 @@ Use LaTeX to write equations:
 $$
 \chi' = \sum_{i=1}^n k_i s_i^2
 $$
+
+```{r}
+1+1
+```
+
+```{python}
+1+1
+```
