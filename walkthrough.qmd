@@ -1,5 +1,6 @@
 ---
 title: "Hello, Quarto"
+bibliography: BA.bib
 format: html
 ---
 
@@ -10,6 +11,9 @@ Markdown is an easy to read and write text format:
 - It's _plain text_ so works well with version control
 - It can be **rendered** into HTML, PDF, and more
 - Learn more at: <https://quarto.org/docs/authoring/>
+
+## Citations
+@voigtGlobalDemandNatural2018
 
 ## Code Cell
 
