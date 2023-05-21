@@ -23,9 +23,18 @@ Install the VS Code Python Extension to enable
 running this cell interactively.
 
 ```{python}
-import os
-os.cpu_count()
+import osmnx as ox
 ```
+
+```{python}
+gdf_boundary = ox.geocode_to_gdf("borneo").dropna(axis=1, how="any").to_crs("EPSG:4326")
+```
+
+
+```{python}
+gdf_boundary.to_file('data/borneo_boundary.shp', driver='ESRI Shapefile')
+```
+
 
 ## Equation
 
@@ -36,7 +45,7 @@ $$
 $$
 
 ```{r}
-1+1+1
+library(tidyverse)
 ```
 
 ```{python}

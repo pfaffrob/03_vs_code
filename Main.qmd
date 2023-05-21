@@ -1,0 +1,28 @@
+---
+title: "Quantification of deforestation on Borneo in the last 20 years based on open source geodata"
+author: Robin Pfaff
+bibliography: BA.bib
+format:
+    html:
+        self-contained: true
+title-block-style: default
+---
+
+#{{< include text/01_cover.qmd >}}
+
+# Abstract
+{{< include text/02_abstract.qmd >}}
+# Table of contents
+# Introduction
+{{< include text/03_introduction.qmd >}}
+# Literature review
+{{< include text/04_literature_review.qmd >}}
+# Method
+{{< include text/05_method.qmd >}}
+# Results
+{{< include text/06_results.qmd >}}
+# Discussion
+{{< include text/07_discussion.qmd >}}
+# Annex
+{{< include text/08_annex.qmd >}}
+
