@@ -1,0 +1,97 @@
+```{python}
+import osmnx as ox
+import geopandas as gpd
+import pandas as pd
+from shapely.geometry import Polygon
+```
+
+
+```{python}
+
+crs = "EPSG:29872"
+
+
+gdf_boundary = ox.geocode_to_gdf("borneo").dropna(axis=1, how="any").to_crs(crs)
+
+
+
+
+
+gdf_boundary
+
+
+
+
+
+
+
+
+
+
+
+type(gdf_boundary)
+
+
+
+borneo_clipped = gdf_boundary.clip(test)
+borneo_clipped
+
+
+
+```
+
+
+
+
+```{python}
+# function to return polygon
+def bbox(long0, lat0, lat1, long1):
+    return Polygon([[long0, lat0],
+                    [long1,lat0],
+                    [long1,lat1],
+                    [long0, lat1]])
+
+test = bbox(300000, 50000, 150000, 400000)
+
+gpd.GeoDataFrame(pd.DataFrame(['p1'], columns = ['geom']),
+    crs = {'init': crs},
+    geometry = [test]).to_file('data/bbox.shp')
+
+type(test)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+
+```{python}
+gdf_boundary.to_file('data/borneo_boundary.shp', driver='ESRI Shapefile')
+```
