@@ -1,8 +1,16 @@
 ```{python}
+import os
 import osmnx as ox
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Polygon
+```
+
+set working directory
+```{python}
+
+
+print('Current Working Directory is: ', os.getcwd())
 ```
 
 
@@ -51,13 +59,17 @@ def bbox(long0, lat0, lat1, long1):
                     [long1,lat1],
                     [long0, lat1]])
 
-test = bbox(300000, 50000, 150000, 400000)
+bbox = bbox(300000, 50000, 150000, 400000)
 
 gpd.GeoDataFrame(pd.DataFrame(['p1'], columns = ['geom']),
     crs = {'init': crs},
-    geometry = [test]).to_file('data/bbox.shp')
+    geometry = [bbox]).to_file(os.path.join(os.path.dirname(__file__), '..', 'data', 'bbox.shp'))
 
-type(test)
+print(os.path.join(os.path.dirname(__file__), '..', 'data', 'bbox.shp'))
+
+print(os.path.join(os.path.dirname(__file__), '..', 'data', 'mydata.json'))
+
+
 ```
 
 
