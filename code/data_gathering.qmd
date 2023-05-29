@@ -1,50 +1,282 @@
 ```{python}
 import os
-import osmnx as ox
 import geopandas as gpd
-import pandas as pd
-from shapely.geometry import Polygon
+import rasterio
+from rasterio import features
+from rasterio.merge import merge
+from rasterio.errors import RasterioIOError
+from rasterio.features import geometry_mask
+from rasterio.mask import mask
+from shapely.geometry import shape, mapping, box
+import numpy as np
+import matplotlib.pyplot as plt
+import osmnx as ox
+
+#from my_functions import merge_tiff_files, change_raster_values #this would be the ideal solution, but doesn't work yet
 ```
 
-set working directory
+# functions
+
+## combine tiff's
 ```{python}
+def merge_tiff_files(tif_files, output_file):
+    src_files_to_mosaic = []
+    
+    for file in tif_files:
+        try:
+            src = rasterio.open(file)
+            src_files_to_mosaic.append(src)
+        except RasterioIOError:
+            print(f"Skipping non-existing file: {file}")
+    
+    mosaic, out_trans = merge(src_files_to_mosaic)
+    
+    out_meta = src.meta.copy()
+    out_meta.update({"driver": "GTiff",
+                     "height": mosaic.shape[1],
+                     "width": mosaic.shape[2],
+                     "transform": out_trans})
+    
+    with rasterio.open(output_file, "w", **out_meta) as dest:
+        dest.write(mosaic)
+    
+    for src in src_files_to_mosaic:
+        src.close()
 
 
-print('Current Working Directory is: ', os.getcwd())
+
+```
+
+## change raster values
+
+```{python}
+def change_raster_values(input_file, output_file, values, new_value):
+    # Open the input TIFF file and read the first band as a NumPy array
+    with rasterio.open(input_file) as src:
+        raster = src.read(1)
+
+        # Convert values to a list if a single integer is provided
+        if not isinstance(values, list):
+            values = [values]
+
+        # Change pixel values in the raster array
+        for value in values:
+            raster[raster == value] = new_value
+
+        # Copy the metadata from the source dataset
+        meta = src.meta.copy()
+
+        # Update the metadata for the modified dataset
+        meta.update(dtype=rasterio.int32, nodata=new_value)
+
+        # Save the modified raster array as a new TIFF file
+        with rasterio.open(output_file, "w", **meta) as dest:
+            dest.write(raster.astype(rasterio.int32), 1)
+```
+
+## change values outside mask to chosen value
+
+```{python}
+def change_values_outside_mask(input_file, output_file, mask, new_value):
+    # Load the input TIF file
+    with rasterio.open(input_file) as src:
+        # Read the input TIF file as an array
+        data = src.read(1)
+
+        # Extract the first geometry from the GeoDataFrame
+        mask_geometry = shape(mask.iloc[0]['geometry'])
+
+        # Create a mask using the input TIF file's georeferencing and the GDF mask
+        mask_array = geometry_mask([mapping(mask_geometry)], src.shape, transform=src.transform, invert=True)
+
+        # Replace values outside the mask with the new value
+        data = np.where(mask_array, data, new_value)
+
+        # Update the metadata and write the modified array to the output TIF file
+        meta = src.meta
+        with rasterio.open(output_file, 'w', **meta) as dst:
+            dst.write(data, 1)
+```
+
+```{python}
+def clip_tif_to_bbox(tif_path, gdf_boundary, output_path):
+    # Open the TIFF file
+    tif = rasterio.open(tif_path)
+
+    # Extract the bounding box coordinates
+    bounds = gdf_boundary.geometry.total_bounds
+    bbox = box(*bounds)
+
+    # Clip the TIFF file to the bounding box
+    clipped, transform = mask(tif, [bbox], crop=True)
+
+    # Update the metadata of the clipped TIFF
+    clipped_meta = tif.meta.copy()
+    clipped_meta.update({
+        "height": clipped.shape[1],
+        "width": clipped.shape[2],
+        "transform": transform
+    })
+
+    # Save the clipped TIFF to the output path
+    with rasterio.open(output_path, "w", **clipped_meta) as output:
+        output.write(clipped)
 ```
 
 
+# prepare oil palm data
 ```{python}
-
-crs = "EPSG:29872"
-
+crs = "EPSG:4326"
+directory = '../../06_data'
 
 gdf_boundary = ox.geocode_to_gdf("borneo").dropna(axis=1, how="any").to_crs(crs)
 
+oil_palm_2019 = gpd.read_file(os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/grid/grid.shp")).to_crs(crs)
+
+oil_palm_2019_borneo = oil_palm_2019.clip(gdf_boundary)
+
+# Extract the 'ID' column values as a list
+id_values = oil_palm_2019_borneo['ID'].tolist()
+
+# Convert the values to integers and then to strings
+id_values = [str(int(value)) for value in id_values]
+
+# List to store the TIFF file paths
+tif_files = []
+
+# Construct the TIFF file paths
+for value in id_values:
+    tif_file = os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_map/L2_2019b_{value}.tif")
+    tif_files.append(tif_file)
+
+####### delete this for full analysis
+tif_files = ['../../06_data/vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_map/L2_2019b_2239.tif', '../../06_data/vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_map/L2_2019b_2224.tif']
+
+merge_tiff_files(tif_files, 'data/oil_palm_2019_borneo.tif')
+
+
+change_raster_values('data/oil_palm_2019_borneo.tif', 'data/oil_palm_2019_borneo.tif', 3, 0)
+
+```
+
+# prepare global forest watch data
+
+```{python}
+tif_files = ['../../06_data/deforestation/global_forest_watch/Hansen_GFC_2022_v1_10_lossyear_00N_100E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2022_v1_10_lossyear_00N_110E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2022_v1_10_lossyear_10N_100E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2022_v1_10_lossyear_10N_110E.tif']
+
+merge_tiff_files(tif_files, 'data/deforestation_2000_2022_borneo.tif')
+
+clip_tif_to_boundary('data/deforestation_2000_2022_borneo.tif', gdf_boundary, 'data/deforestation_2000_2022_borneo.tif')
+
+change_values_outside_mask('data/deforestation_2000_2022_borneo.tif', 'data/deforestation_2000_2022_borneo.tif', gdf_boundary, 0)
+
+```
 
 
 
 
-gdf_boundary
 
 
+# create chart for loss year
+
+```{python}
+import rasterio
+import numpy as np
+import matplotlib.pyplot as plt
+from collections import Counter
+
+# Open the TIFF file and read band 1
+tif_path = "data/deforestation_2000_2022_borneo.tif"
+with rasterio.open(tif_path) as tif:
+    band1 = tif.read(1)
+
+# Get the unique values and their counts, excluding 0
+unique_values, counts = np.unique(band1[band1 != 0], return_counts=True)
+
+# Calculate the area of each unique value
+pixel_width, pixel_height = tif.res[0], tif.res[1]  # Spatial resolution
+pixel_area = pixel_width * pixel_height
+areas = counts * pixel_area
+
+# Plot the bar chart
+plt.bar(unique_values, areas)
+plt.xlabel("Unique Values")
+plt.ylabel("Area")
+plt.title("Area of Unique Values (excluding 0) in TIFF")
+plt.show()
 
 
+```
 
 
+```{python}
+
+# Step 1: Read the GeoTIFF file
+with rasterio.open("data/deforestation_2000_2022_borneo.tif") as src:
+    # Step 2: Get pixel size
+    pixel_area = src.res[0] * src.res[1]  # Assumes square pixels, adjust if needed
+    # Step 3: Iterate through raster data
+    data = src.read(1)  # Assuming single-band GeoTIFF
+    unique_years = np.unique(data[data != 0])
+    cleared_areas = {year: 0 for year in unique_years}
+
+    for year in unique_years:
+        cleared_areas[year] = np.sum(data[data == year]) * pixel_area
+
+# Step 5: Generate a chart
+years = sorted(cleared_areas.keys())
+areas = [cleared_areas[year] for year in years]
+
+plt.bar(years, areas)
+plt.xlabel('Year')
+plt.ylabel('Cleared Area (square units)')
+plt.title('Forest Cleared Area by Year')
+plt.show()
+
+```
 
 
+```{python}
+import rasterio
+from rasterio.warp import calculate_default_transform, reproject
+import numpy as np
+import matplotlib.pyplot as plt
 
+# Step 1: Read the GeoTIFF file
+with rasterio.open('data/deforestation_2000_2022_borneo.tif') as src:
+    # Step 2: Reproject to EPSG:19894
+    dst_crs = 'EPSG:19894'
+    transform, width, height = calculate_default_transform(src.crs, dst_crs, src.width, src.height, *src.bounds)
+    kwargs = src.meta.copy()
+    kwargs.update({
+        'crs': dst_crs,
+        'transform': transform,
+        'width': width,
+        'height': height
+    })
+    reproj_file = 'reprojected_geotiff.tif'
+    with rasterio.open(reproj_file, 'w', **kwargs) as dst:
+        reproject(source=rasterio.band(src, 1), destination=rasterio.band(dst, 1), src_transform=src.transform, src_crs=src.crs, dst_transform=transform, dst_crs=dst_crs)
 
+    # Step 3: Get pixel size in hectares
+    pixel_area = dst.res[0] * dst.res[1] / 10000  # Convert square meters to hectares
+    # Step 4: Iterate through reprojected raster data
+    data = dst.read(1)
+    unique_years = np.unique(data[data != 0])
+    cleared_areas = {year: 0 for year in unique_years}
 
-type(gdf_boundary)
+    for year in unique_years:
+        cleared_areas[year] = np.sum(data[data == year]) * pixel_area
 
+# Step 5: Generate a chart
+years = sorted(cleared_areas.keys())
+areas = [cleared_areas[year] for year in years]
 
-
-borneo_clipped = gdf_boundary.clip(test)
-borneo_clipped
-
-
+plt.bar(years, areas)
+plt.xlabel('Year')
+plt.ylabel('Cleared Area (hectares)')
+plt.title('Forest Cleared Area by Year')
+plt.show()
 
 ```
 
@@ -52,58 +284,80 @@ borneo_clipped
 
 
 ```{python}
-# function to return polygon
-def bbox(long0, lat0, lat1, long1):
-    return Polygon([[long0, lat0],
-                    [long1,lat0],
-                    [long1,lat1],
-                    [long0, lat1]])
+import rasterio
 
-bbox = bbox(300000, 50000, 150000, 400000)
+# Open the source GeoTIFF file
+with rasterio.open('data/deforestation_2000_2022_borneo.tif') as src:
+    # Define the target CRS
+    dst_crs = 'EPSG:23846'  # Example: reproject to WGS84
 
-gpd.GeoDataFrame(pd.DataFrame(['p1'], columns = ['geom']),
-    crs = {'init': crs},
-    geometry = [bbox]).to_file(os.path.join(os.path.dirname(__file__), '..', 'data', 'bbox.shp'))
+    # Reproject the raster to the target CRS
+    reprojected_data, transform = rasterio.warp.reproject(
+        source=src.read(),  # Read all bands
+        src_crs=src.crs,
+        dst_crs=dst_crs,
+        src_transform=src.transform,
+        dst_resolution=src.res,  # Use the same resolution as the source
+        dst_shape=src.shape  # Use the same shape as the source
+    )
 
-print(os.path.join(os.path.dirname(__file__), '..', 'data', 'bbox.shp'))
-
-print(os.path.join(os.path.dirname(__file__), '..', 'data', 'mydata.json'))
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Save the reprojected data to a new GeoTIFF file
+with rasterio.open('output.tif', 'w', driver='GTiff', height=reprojected_data.shape[1], width=reprojected_data.shape[2], count=reprojected_data.shape[0], dtype=reprojected_data.dtype, crs=dst_crs, transform=transform) as dst:
+    dst.write(reprojected_data)
 
 ```
 
+
+# reproject to epsg:23846
 
 ```{python}
-gdf_boundary.to_file('data/borneo_boundary.shp', driver='ESRI Shapefile')
+import rasterio
+from rasterio.warp import calculate_default_transform, reproject, Resampling
+#open source raster
+srcRst = rasterio.open('data/deforestation_2000_2022_borneo.tif')
+print("source raster crs:")
+print(srcRst.crs)
+
+dstCrs = {'init': 'EPSG:23846'}
+print("destination raster crs:")
+print(dstCrs)
+
+#calculate transform array and shape of reprojected raster
+transform, width, height = calculate_default_transform(
+        srcRst.crs, dstCrs, srcRst.width, srcRst.height, *srcRst.bounds)
+print("transform array of source raster")
+print(srcRst.transform)
+
+print("transform array of destination raster")
+print(transform)
+
+#working of the meta for the destination raster
+kwargs = srcRst.meta.copy()
+kwargs.update({
+        'crs': dstCrs,
+        'transform': transform,
+        'width': width,
+        'height': height
+    })
+
+#open destination raster
+dstRst = rasterio.open('data/reproject_forest_lost.tif', 'w', **kwargs)
+
+#reproject and save raster band data
+for i in range(1, srcRst.count + 1):
+    reproject(
+        source=rasterio.band(srcRst, i),
+        destination=rasterio.band(dstRst, i),
+        #src_transform=srcRst.transform,
+        src_crs=srcRst.crs,
+        #dst_transform=transform,
+        dst_crs=dstCrs,
+        resampling=Resampling.nearest)
+#close destination raster
+dstRst.close()
+
+
+
 ```
+
+
