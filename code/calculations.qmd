@@ -1,0 +1,464 @@
+```{python}
+import rasterio
+from rasterio.mask import mask
+import numpy as np
+import matplotlib.pyplot as plt
+import mplcursors
+import geopandas as gpd
+import pandas as pd
+```
+# functions
+
+```{python}
+
+def mask_tif_select_nodata(input_tif, mask_tif, output_tif, nodata_value = [0]):
+    with rasterio.open(input_tif) as src:
+        with rasterio.open(mask_tif) as mask:
+            mask_data = mask.read(1)
+            out_image = src.read()
+            out_image[mask_data == nodata_value] = nodata_value
+            out_meta = src.meta
+            out_meta.update({"nodata": nodata_value})
+            with rasterio.open(output_tif, "w", **out_meta) as dest:
+                dest.write(out_image)
+
+```
+
+```{python}
+
+def mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=False, nodata_value=None):
+    with rasterio.open(input_tif) as src:
+        with rasterio.open(mask_tif) as mask:
+            mask_data = mask.read()
+            out_image = src.read()
+            if nodata_value is None:
+                nodata_value = src.nodata
+            if nodata_value is None:
+                nodata_value = 0
+            if inside:
+                mask = np.isin(mask_data, mask_values)
+            else:
+                mask = ~np.isin(mask_data, mask_values)
+            if len(mask_data.shape) == 2:
+                out_image[:, mask] = nodata_value
+            else:
+                out_image[mask] = nodata_value
+            out_meta = src.meta
+            out_meta.update({"nodata": nodata_value})
+            with rasterio.open(output_tif, "w", **out_meta) as dest:
+                dest.write(out_image)
+
+```
+
+```{python}
+from rasterio.features import geometry_mask
+def mask_tif_with_shapefile(input_tif, shapefile, output_tif, nodata_value=None):
+    with rasterio.open(input_tif) as src:
+        shapes = gpd.read_file(shapefile)
+        mask = geometry_mask(shapes.geometry, out_shape=src.shape, transform=src.transform, invert=True)
+        out_image = src.read()
+        if nodata_value is None:
+            nodata_value = src.nodata
+        if nodata_value is None:
+            nodata_value = 0
+        out_image[:, ~mask] = nodata_value
+        out_meta = src.meta
+        out_meta.update({"nodata": nodata_value})
+        with rasterio.open(output_tif, "w", **out_meta) as dest:
+            dest.write(out_image)
+```
+
+# analysis forest loss and partially build up areas
+
+## How much forest was lost yearly? (total)
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Total Forest Loss 2001 - 2021'
+input_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_gfw_2000_2022_borneo.tif'
+output_csv = 'results/tables/gfc_deforestation_total_yearly.csv'
+output_png = 'results/plots/borneo_total_forest_loss.png'
+
+with rasterio.open(input_tif) as src:
+    ## Get the spatial resolution (in meters) from the TIF file metadata
+    spatial_resolution = src.res[0]
+
+    ## Calculate the conversion factor from pixels to hectares
+    conversion_factor = (spatial_resolution ** 2) / 10000
+
+    band1 = src.read(1)
+    unique, counts = np.unique(band1, return_counts=True)
+    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
+    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
+    df['Year'] = df['Year'] + 2000
+    df.to_csv(output_csv, index=False)
+
+plt.style.use('bmh') ## set the style to 'bmh'
+
+df = pd.read_csv(output_csv)
+
+ax = df.plot(x='Year', y='Area (ha)', kind='bar')
+for i in ax.containers:
+    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+
+## add the x-axis line back
+ax.spines['bottom'].set_visible(True)
+
+## remove the vertical grid lines and add horizontal grid lines
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+## extend the y-axis by 15%
+y_max = df['Area (ha)'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+## add a title to the plot
+ax.set_title(title)
+
+## save the plot as a .png file with extra space around the edges
+plt.savefig(output_png, bbox_inches='tight')
+```
+
+## How much forest was lost yearly to forest fires?
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Total Forest Loss (Forest Fires) 2001 - 2021'
+input_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_forest_fires.tif'
+output_csv = 'results/tables/forest_fires_loss_total_yearly.csv'
+output_png = 'results/plots/forest_fires_loss_total_yearly.png'
+
+with rasterio.open(input_tif) as src:
+    ## Get the spatial resolution (in meters) from the TIF file metadata
+    spatial_resolution = src.res[0]
+
+    ## Calculate the conversion factor from pixels to hectares
+    conversion_factor = (spatial_resolution ** 2) / 10000
+
+    band1 = src.read(1)
+    unique, counts = np.unique(band1, return_counts=True)
+    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
+    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
+    df['Year'] = df['Year'] + 2000
+    df.to_csv(output_csv, index=False)
+
+plt.style.use('bmh') ## set the style to 'bmh'
+
+df = pd.read_csv(output_csv)
+
+ax = df.plot(x='Year', y='Area (ha)', kind='bar')
+for i in ax.containers:
+    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+
+## add the x-axis line back
+ax.spines['bottom'].set_visible(True)
+
+## remove the vertical grid lines and add horizontal grid lines
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+## extend the y-axis by 15%
+y_max = df['Area (ha)'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+## add a title to the plot
+ax.set_title(title)
+
+## save the plot as a .png file with extra space around the edges
+plt.savefig(output_png, bbox_inches='tight')
+```
+
+
+## mask forest loss with primary forest
+```{python}
+input_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_gfw_2000_2022_borneo.tif'
+mask_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_primary_forest_2001.tif'
+output_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
+
+mask_tif_select_nodata(input_tif, mask_tif, output_tif)
+```
+
+## How much primary forest was lost yearly to forest fires?
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Total Primary Forest Loss 2001 - 2021'
+input_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
+output_csv = 'results/tables/primary_forest_loss_total_yearly.csv'
+output_png = 'results/plots/primary_loss_total_yearly.png'
+
+with rasterio.open(input_tif) as src:
+    ## Get the spatial resolution (in meters) from the TIF file metadata
+    spatial_resolution = src.res[0]
+
+    ## Calculate the conversion factor from pixels to hectares
+    conversion_factor = (spatial_resolution ** 2) / 10000
+
+    band1 = src.read(1)
+    unique, counts = np.unique(band1, return_counts=True)
+    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
+    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
+    df['Year'] = df['Year'] + 2000
+    df.to_csv(output_csv, index=False)
+
+plt.style.use('bmh') ## set the style to 'bmh'
+
+df = pd.read_csv(output_csv)
+
+ax = df.plot(x='Year', y='Area (ha)', kind='bar')
+for i in ax.containers:
+    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+
+## add the x-axis line back
+ax.spines['bottom'].set_visible(True)
+
+## remove the vertical grid lines and add horizontal grid lines
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+## extend the y-axis by 15%
+y_max = df['Area (ha)'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+## add a title to the plot
+ax.set_title(title)
+
+## save the plot as a .png file with extra space around the edges
+plt.savefig(output_png, bbox_inches='tight')
+```
+
+
+## mask forest loss with new build up areas
+```{python}
+
+input_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_gfw_2000_2022_borneo.tif'
+mask_tif = '../../07_data_prepared/reduced_extent/infrastructure/utm_build_up_area.tif'
+output_tif = '../../08_data_processed/combined/deforestation_new_build_up_area.tif'
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
+```
+
+## How much new build up areas was created on forest loss areas (2020 compared to 2000)?
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Forest Loss to build up areas 2001 - 2021'
+input_tif = '../../08_data_processed/combined/deforestation_new_build_up_area.tif'
+output_csv = 'results/tables/forest_loss_build_up_areas_yearly.csv'
+output_png = 'results/plots/forest_loss_build_up_areas_yearly.png'
+
+with rasterio.open(input_tif) as src:
+    ## Get the spatial resolution (in meters) from the TIF file metadata
+    spatial_resolution = src.res[0]
+
+    ## Calculate the conversion factor from pixels to hectares
+    conversion_factor = (spatial_resolution ** 2) / 10000
+
+    band1 = src.read(1)
+    unique, counts = np.unique(band1, return_counts=True)
+    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
+    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
+    df['Year'] = df['Year'] + 2000
+    df.to_csv(output_csv, index=False)
+
+plt.style.use('bmh') ## set the style to 'bmh'
+
+df = pd.read_csv(output_csv)
+
+ax = df.plot(x='Year', y='Area (ha)', kind='bar')
+for i in ax.containers:
+    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+
+## add the x-axis line back
+ax.spines['bottom'].set_visible(True)
+
+## remove the vertical grid lines and add horizontal grid lines
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+## extend the y-axis by 15%
+y_max = df['Area (ha)'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+## add a title to the plot
+ax.set_title(title)
+
+## save the plot as a .png file with extra space around the edges
+plt.savefig(output_png, bbox_inches='tight')
+```
+
+
+
+## mask forest fire loss with new build up areas
+```{python}
+
+input_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_forest_fires.tif'
+mask_tif = '../../07_data_prepared/reduced_extent/infrastructure/utm_build_up_area.tif'
+output_tif = '../../08_data_processed/combined/forest_fires_new_build_up_area.tif'
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
+```
+
+## How much new build up areas was created on forest-fire loss areas (2020 compared to 2000)?
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Forest Loss to build up areas by forest fires 2001 - 2021'
+input_tif = '../../08_data_processed/combined/forest_fires_new_build_up_area.tif'
+output_csv = 'results/tables/forest_fires_new_build_up_area_yearly.csv'
+output_png = 'results/plots/forest_fires_new_build_up_area_yearly.png'
+
+with rasterio.open(input_tif) as src:
+    ## Get the spatial resolution (in meters) from the TIF file metadata
+    spatial_resolution = src.res[0]
+
+    ## Calculate the conversion factor from pixels to hectares
+    conversion_factor = (spatial_resolution ** 2) / 10000
+
+    band1 = src.read(1)
+    unique, counts = np.unique(band1, return_counts=True)
+    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
+    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
+    df['Year'] = df['Year'] + 2000
+    df.to_csv(output_csv, index=False)
+
+plt.style.use('bmh') ## set the style to 'bmh'
+
+df = pd.read_csv(output_csv)
+
+ax = df.plot(x='Year', y='Area (ha)', kind='bar')
+for i in ax.containers:
+    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+
+## add the x-axis line back
+ax.spines['bottom'].set_visible(True)
+
+## remove the vertical grid lines and add horizontal grid lines
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+## extend the y-axis by 15%
+y_max = df['Area (ha)'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+## add a title to the plot
+ax.set_title(title)
+
+## save the plot as a .png file with extra space around the edges
+plt.savefig(output_png, bbox_inches='tight')
+```
+
+
+## mask deforestation with protected areas
+```{python}
+
+input_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_forest_fires.tif'
+mask_shp = '../../07_data_prepared/reduced_extent/protected_areas/protected_areas_borneo.shp'
+output_tif = '../../08_data_processed/combined/deforestation_protected_areas.tif'
+
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+```
+
+## How much much forest was lost in protected areas yearly?
+```{python}
+## Set variables for the title and paths
+title = 'Forest loss in protected areas'
+input_tif = '../../08_data_processed/combined/deforestation_protected_areas.tif'
+output_csv = 'results/tables/deforestation_protected_areas_yearly.csv'
+output_png = 'results/plots/deforestation_protected_areas_yearly.png'
+
+with rasterio.open(input_tif) as src:
+    ## Get the spatial resolution (in meters) from the TIF file metadata
+    spatial_resolution = src.res[0]
+
+    ## Calculate the conversion factor from pixels to hectares
+    conversion_factor = (spatial_resolution ** 2) / 10000
+
+    band1 = src.read(1)
+    unique, counts = np.unique(band1, return_counts=True)
+    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
+    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
+    df['Year'] = df['Year'] + 2000
+    df.to_csv(output_csv, index=False)
+
+plt.style.use('bmh') ## set the style to 'bmh'
+
+df = pd.read_csv(output_csv)
+
+ax = df.plot(x='Year', y='Area (ha)', kind='bar')
+for i in ax.containers:
+    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+
+## add the x-axis line back
+ax.spines['bottom'].set_visible(True)
+
+## remove the vertical grid lines and add horizontal grid lines
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+## extend the y-axis by 15%
+y_max = df['Area (ha)'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+## add a title to the plot
+ax.set_title(title)
+
+## save the plot as a .png file with extra space around the edges
+plt.savefig(output_png, bbox_inches='tight')
+```
+
+# oil palm
+
+## yearly new oil palm plantation
+
+```{python}
+## Set variables for the title and paths
+title = 'Borneo new oil palm plantations (2001 - 2017)'
+input_tif = '../../07_data_prepared/reduced_extent/oil_palm/utm_detection_year_2000_2017.tif'
+output_csv = 'results/tables/new_oil_palm_detection_yearly.csv'
+output_png = 'results/plots/new_oil_palm_detection_yearly.png'
+
+with rasterio.open(input_tif) as src:
+    ## Get the spatial resolution (in meters) from the TIF file metadata
+    spatial_resolution = src.res[0]
+
+    ## Calculate the conversion factor from pixels to hectares
+    conversion_factor = (spatial_resolution ** 2) / 10000
+
+    band1 = src.read(1)
+    unique, counts = np.unique(band1, return_counts=True)
+    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
+    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
+    df['Year'] = df['Year']
+    df.to_csv(output_csv, index=False)
+
+plt.style.use('bmh') ## set the style to 'bmh'
+
+df = pd.read_csv(output_csv)
+
+ax = df.plot(x='Year', y='Area (ha)', kind='bar')
+for i in ax.containers:
+    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+
+## add the x-axis line back
+ax.spines['bottom'].set_visible(True)
+
+## remove the vertical grid lines and add horizontal grid lines
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+## extend the y-axis by 15%
+y_max = df['Area (ha)'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+## add a title to the plot
+ax.set_title(title)
+
+## save the plot as a .png file with extra space around the edges
+plt.savefig(output_png, bbox_inches='tight')
+```
+
+
+## mask forest loss with oil palm
+```{python}
+input_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_gfw_2000_2022_borneo.tif'
+mask_tif = '../../07_data_prepared/reduced_extent/oil_palm/utm_detection_year_2000_2017.tif'
+output_tif = '../../08_data_processed/combined/oil_palm_deforestation.tif'
+
+mask_tif_select_nodata(input_tif, mask_tif, output_tif)
+```

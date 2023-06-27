@@ -1,1 +1,0 @@
-<span align="center"> <h2> Quantification of deforestation on Borneo in the last 20 years based on open source geodata </h2> </span>

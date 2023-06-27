@@ -1,0 +1,25 @@
+\begin{titlepage}
+    \centering
+    {\fontsize{12}{10}\selectfont ZURICH UNIVERSITY OF APPLIED SCIENCES\par}
+    {\fontsize{12}{10}\selectfont SCHOOL OF LIFE SCIENCES AND FACILITY MANAGEMENT\par}
+    {\fontsize{12}{10}\selectfont INSTITUTE OF NATURAL RESOURCE SCIENCES\par}
+    \vspace{6cm}
+    {\fontsize{14}{16}\bfseries Quantification of deforestation on Borneo in the last 20 years based on open source geodata\par}
+    {\fontsize{12}{14}\bfseries Bachelor Thesis\par}
+    {\fontsize{12}{14}\selectfont HS23\par}
+    \vspace{2cm}
+    {\fontsize{12}{14}\bfseries by\par}
+    {\fontsize{12}{14}\bfseries Robin Pfaff\par}
+    {\fontsize{12}{14}\selectfont BSc Environmental engineering\par}
+    \vspace{2cm}
+    {\fontsize{12}{14}\selectfont Submission date: \textcolor{red}{dd.mm}.2023\par}
+
+    \vfill
+    \begin{flushleft}
+        1\textsuperscript{st} supervisor:\\
+        Ochsner, Pascal\\
+        2\textsuperscript{nd} supervisor:\\
+        Ratnaweera, Nils\\
+        ZHAW IUNR Research Group for Geoinformatics
+    \end{flushleft}
+\end{titlepage}

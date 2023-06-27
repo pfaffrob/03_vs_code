@@ -1,0 +1,125 @@
+
+```{python}
+import os
+import geopandas as gpd
+import rasterio
+from rasterio import features
+from rasterio.merge import merge
+from rasterio.errors import RasterioIOError
+from rasterio.features import geometry_mask
+from rasterio.mask import mask
+from rasterio.warp import calculate_default_transform, reproject, Resampling
+from shapely.geometry import shape, mapping, box
+import numpy as np
+import matplotlib.pyplot as plt
+import osmnx as ox
+```
+
+# define test extent 
+```{python}
+import geopandas as gpd
+from shapely.geometry import Polygon
+x= 2980000
+y= -420000
+# Define the coordinates of the bounding box
+minx, miny, maxx, maxy = [0 + x,  + y, 100000 + x, 100000 + y]
+
+# Create a polygon from the bounding box coordinates
+bbox = Polygon([(minx, miny), (minx, maxy), (maxx, maxy), (maxx, miny)])
+
+# Create a GeoDataFrame from the polygon
+gdf = gpd.GeoDataFrame(geometry=[bbox])
+
+# Set the CRS of the GeoDataFrame to EPSG:23846
+gdf.crs = "EPSG:23846"
+
+# Export the GeoDataFrame as a shapefile
+gdf.to_file("../../07_data_prepared/reduced_extent/boundary/borneo_boundary.shp")
+
+```
+
+# import extent into gdf
+```{python}
+gdf_boundary = gpd.read_file("../../07_data_prepared/reduced_extent/boundary/borneo_boundary.shp")
+```
+
+
+```{python}
+def clip_tif_to_bbox(tif_path, gdf_boundary, output_path):
+    # Open the TIFF file
+    tif = rasterio.open(tif_path)
+
+    # Extract the bounding box coordinates
+    bounds = gdf_boundary.geometry.total_bounds
+    bbox = box(*bounds)
+
+    # Clip the TIFF file to the bounding box
+    clipped, transform = mask(tif, [bbox], crop=True)
+
+    # Update the metadata of the clipped TIFF
+    clipped_meta = tif.meta.copy()
+    clipped_meta.update({
+        "height": clipped.shape[1],
+        "width": clipped.shape[2],
+        "transform": transform,
+        "compress": 'lzw'
+    })
+
+    # Save the clipped TIFF to the output path
+    with rasterio.open(output_path, "w", **clipped_meta) as output:
+        output.write(clipped)
+
+```
+
+# cropland
+```{python}
+years = [2003, 2007, 2011, 2015, 2019]
+
+for year in years:
+    input_file = f"../../07_data_prepared/cropland/utm_borneo_cropland_{year}.tif"
+    output_file = f"../../07_data_prepared/reduced_extent/cropland/utm_borneo_cropland_{year}.tif"
+    clip_tif_to_bbox(input_file, gdf_boundary, output_file)
+
+```
+
+# Forest fires
+```{python}
+clip_tif_to_bbox("../../07_data_prepared/deforestation/utm_forest_fires.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/deforestation/utm_forest_fires.tif")
+```
+
+# Global forest watch
+```{python}
+clip_tif_to_bbox("../../07_data_prepared/deforestation/utm_gfw_2000_2022_borneo.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/deforestation/utm_gfw_2000_2022_borneo.tif")
+clip_tif_to_bbox("../../07_data_prepared/deforestation/utm_gfw_fcover_2000_borneo.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/deforestation/utm_gfw_fcover_2000_borneo.tif")
+clip_tif_to_bbox("../../07_data_prepared/deforestation/utm_gfw_gain_2000_2012_borneo.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/deforestation/utm_gfw_gain_2000_2012_borneo.tif")
+```
+
+# primary forest
+```{python}
+clip_tif_to_bbox("../../07_data_prepared/deforestation/utm_primary_forest_2001.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/deforestation/utm_primary_forest_2001.tif")
+```
+
+# build up area
+```{python}
+clip_tif_to_bbox("../../07_data_prepared/infrastructure/utm_build_up_area.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/infrastructure/utm_build_up_area.tif")
+
+```
+
+# oil palm
+```{python}
+clip_tif_to_bbox("../../07_data_prepared/oil_palm/utm_detection_year_2000_2017.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/oil_palm/utm_detection_year_2000_2017.tif")
+
+clip_tif_to_bbox("../../07_data_prepared/oil_palm/utm_oil_palm_2019_borneo.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/oil_palm/utm_oil_palm_2019_borneo.tif")
+```
+
+# protected areas
+```{python}
+shapefile_path = "../../07_data_prepared/protected_areas/protected_areas_borneo.shp"
+
+shapefile_gdf = gpd.read_file(shapefile_path)
+
+clipped_gdf = gpd.clip(shapefile_gdf, gdf_boundary.geometry)
+
+output_path = "../../07_data_prepared/reduced_extent/protected_areas/protected_areas_borneo.shp"
+clipped_gdf.to_file(output_path)
+```
