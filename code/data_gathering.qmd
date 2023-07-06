@@ -1,199 +1,9 @@
 ```{python}
 import os
 import geopandas as gpd
-import rasterio
-from rasterio import features
-from rasterio.merge import merge
-from rasterio.errors import RasterioIOError
-from rasterio.features import geometry_mask
-from rasterio.mask import mask
-from rasterio.warp import calculate_default_transform, reproject, Resampling
-from shapely.geometry import shape, mapping, box
-import numpy as np
 import matplotlib.pyplot as plt
 import osmnx as ox
-
-#from my_functions import merge_tiff_files, change_raster_values #this would be the ideal solution, but doesn't work yet
-```
-
-# functions
-
-## combine tiff's
-```{python}
-def merge_tiff_files(tif_files, output_file):
-    src_files_to_mosaic = []
-    
-    for file in tif_files:
-        try:
-            src = rasterio.open(file)
-            src_files_to_mosaic.append(src)
-        except RasterioIOError:
-            print(f"Skipping non-existing file: {file}")
-    
-    mosaic, out_trans = merge(src_files_to_mosaic)
-    
-    out_meta = src.meta.copy()
-    out_meta.update({"driver": "GTiff",
-                     "height": mosaic.shape[1],
-                     "width": mosaic.shape[2],
-                     "transform": out_trans,
-                     "compress": 'lzw'})
-    
-    with rasterio.open(output_file, "w", **out_meta) as dest:
-        dest.write(mosaic)
-    
-    for src in src_files_to_mosaic:
-        src.close()
-
-```
-
-## change raster values (reclassify has more options)
-
-```{python}
-def change_raster_values(input_file, output_file, values, new_value):
-    # Open the input TIFF file and read the first band as a NumPy array
-    with rasterio.open(input_file) as src:
-        raster = src.read(1)
-
-        # Convert values to a list if a single integer is provided
-        if not isinstance(values, list):
-            values = [values]
-
-        # Change pixel values in the raster array
-        mask = np.isin(raster, values)
-        raster = np.where(mask, new_value, raster)
-
-        # Copy the metadata from the source dataset
-        meta = src.meta.copy()
-
-        # Update the metadata for the modified dataset
-        meta.update(dtype=rasterio.int32, nodata=new_value, compress='lzw')
-
-        # Save the modified raster array as a new TIFF file
-        with rasterio.open(output_file, "w", **meta) as dest:
-            dest.write(raster.astype(rasterio.int32), 1)
-
-```
-
-## change values outside mask to chosen value
-
-```{python}
-def change_values_outside_mask(input_file, output_file, mask, new_value = 0):
-    # Load the input TIF file
-    with rasterio.open(input_file) as src:
-        # Read the input TIF file as an array
-        data = src.read(1)
-
-        # Extract the first geometry from the GeoDataFrame
-        mask_geometry = shape(mask.iloc[0]['geometry'])
-
-        # Create a mask using the input TIF file's georeferencing and the GDF mask
-        mask_array = geometry_mask([mapping(mask_geometry)], src.shape, transform=src.transform, invert=True)
-
-        # Replace values outside the mask with the new value
-        data = np.where(mask_array, data, new_value)
-
-        # Update the metadata and write the modified array to the output TIF file
-        meta = src.meta
-        meta.update(compress='lzw')
-        with rasterio.open(output_file, 'w', **meta) as dst:
-            dst.write(data, 1)
-```
-
-## clip to bbox
-```{python}
-def clip_tif_to_bbox(tif_path, gdf_boundary, output_path):
-    # Open the TIFF file
-    tif = rasterio.open(tif_path)
-
-    # Extract the bounding box coordinates
-    bounds = gdf_boundary.geometry.total_bounds
-    bbox = box(*bounds)
-
-    # Clip the TIFF file to the bounding box
-    clipped, transform = mask(tif, [bbox], crop=True)
-
-    # Update the metadata of the clipped TIFF
-    clipped_meta = tif.meta.copy()
-    clipped_meta.update({
-        "height": clipped.shape[1],
-        "width": clipped.shape[2],
-        "transform": transform,
-        "compress": 'lzw'
-    })
-
-    # Save the clipped TIFF to the output path
-    with rasterio.open(output_path, "w", **clipped_meta) as output:
-        output.write(clipped)
-
-```
-
-
-```{python}
-def reproject_raster(epsg, input_file_path, output_file_path):
-    #open source raster
-    srcRst = rasterio.open(input_file_path)
-
-    dstCrs = {'init': epsg}
-
-    #calculate transform array and shape of reprojected raster
-    transform, width, height = calculate_default_transform(
-            srcRst.crs, dstCrs, srcRst.width, srcRst.height, *srcRst.bounds)
-
-    #working of the meta for the destination raster
-    kwargs = srcRst.meta.copy()
-    kwargs.update({
-            'crs': dstCrs,
-            'transform': transform,
-            'width': width,
-            'height': height,
-            'compress': 'lzw'
-        })
-
-    #open destination raster
-    dstRst = rasterio.open(output_file_path, 'w', **kwargs)
-
-    #reproject and save raster band data
-    for i in range(1, srcRst.count + 1):
-        reproject(
-            source=rasterio.band(srcRst, i),
-            destination=rasterio.band(dstRst, i),
-            #src_transform=srcRst.transform,
-            src_crs=srcRst.crs,
-            #dst_transform=transform,
-            dst_crs=dstCrs,
-            resampling=Resampling.nearest)
-    #close destination raster
-    dstRst.close()
-
-```
-
-```{python}
-def reclassify(input_file, output_file, reclassify_values):
-    # Open the input TIFF file and read the first band as a NumPy array
-    with rasterio.open(input_file) as src:
-        raster = src.read(1)
-
-        # Create a copy of the raster array to store the reclassified values
-        reclassified_raster = np.copy(raster)
-
-        # Loop through the reclassification dictionary and update the pixel values
-        for new_value, values in reclassify_values.items():
-            if isinstance(values, int):
-                values = [values]
-            mask = np.isin(raster, values)
-            reclassified_raster[mask] = new_value
-
-        # Copy the metadata from the source dataset
-        meta = src.meta.copy()
-
-        # Update the metadata for the modified dataset
-        meta.update(dtype=rasterio.int32, compress='lzw')
-
-        # Save the modified raster array as a new TIFF file
-        with rasterio.open(output_file, "w", **meta) as dest:
-            dest.write(reclassified_raster.astype(rasterio.int32), 1)
-
+from my_functions import * 
 ```
 
 
@@ -246,7 +56,7 @@ for value in id_values:
 
 
 # Merge the processed TIFF files
-merge_tiff_files(reclassified_tif_files, '../../07_data_prepared/oil_palm/utm_oil_palm_2019_borneo.tif')
+merge_tif_files(reclassified_tif_files, '../../07_data_prepared/oil_palm/utm_oil_palm_2019_borneo.tif')
 
 
 ```
@@ -256,7 +66,7 @@ merge_tiff_files(reclassified_tif_files, '../../07_data_prepared/oil_palm/utm_oi
 
 tif_files = ['../../06_data/vegetation/oil_palm/year_of_detection/op_extent_age_N.tif', '../../06_data/vegetation/oil_palm/year_of_detection/op_extent_age_S.tif']
 
-merge_tiff_files(tif_files, '../../07_data_prepared/oil_palm/detection_year.tif')
+merge_tif_files(tif_files, '../../07_data_prepared/oil_palm/detection_year.tif')
 
 clip_tif_to_bbox('../../07_data_prepared/oil_palm/detection_year.tif', gdf_boundary, '../../07_data_prepared/oil_palm/detection_year.tif')
 
@@ -300,7 +110,7 @@ reproject_raster('EPSG:23846', '../../07_data_prepared/oil_palm/detection_year_2
 ```{python}
 tif_files = ['../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_lossyear_00N_100E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_lossyear_00N_110E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_lossyear_10N_100E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_lossyear_10N_110E.tif']
 
-merge_tiff_files(tif_files, '../../07_data_prepared/deforestation/gfw_lossyear_2000_2022_borneo.tif')
+merge_tif_files(tif_files, '../../07_data_prepared/deforestation/gfw_lossyear_2000_2022_borneo.tif')
 
 clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_lossear_2000_2022_borneo.tif', gdf_boundary, '../../07_data_prepared/deforestation/gfw_2000_2022_borneo.tif')
 
@@ -315,7 +125,7 @@ reproject_raster('EPSG:23846', '../../07_data_prepared/deforestation/gfw_lossyea
 ```{python}
 tif_files = ['../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_treecover2000_00N_100E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_treecover2000_00N_110E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_treecover2000_10N_100E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_treecover2000_10N_110E.tif']
 
-merge_tiff_files(tif_files, '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif')
+merge_tif_files(tif_files, '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif')
 
 clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', gdf_boundary, '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif')
 
@@ -330,7 +140,7 @@ reproject_raster('EPSG:23846', '../../07_data_prepared/deforestation/gfw_fcover_
 ```{python}
 tif_files = ['../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_gain_00N_100E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_gain_00N_110E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_gain_10N_100E.tif', '../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1_9_gain_10N_110E.tif']
 
-merge_tiff_files(tif_files, '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif')
+merge_tif_files(tif_files, '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif')
 
 clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', gdf_boundary, '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif')
 
@@ -434,11 +244,11 @@ print(tif_files_2003)
 merge_output_dir = os.path.join(script_dir, '../../07_data_prepared/cropland')
 os.makedirs(merge_output_dir, exist_ok=True)
 
-merge_tiff_files(tif_files_2003, os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'))
-merge_tiff_files(tif_files_2007, os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'))
-merge_tiff_files(tif_files_2011, os.path.join(merge_output_dir,f'borneo_cropland_2011.tif'))
-merge_tiff_files(tif_files_2015, os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'))
-merge_tiff_files(tif_files_2019, os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'))
+merge_tif_files(tif_files_2003, os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'))
+merge_tif_files(tif_files_2007, os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'))
+merge_tif_files(tif_files_2011, os.path.join(merge_output_dir,f'borneo_cropland_2011.tif'))
+merge_tif_files(tif_files_2015, os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'))
+merge_tif_files(tif_files_2019, os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'))
 
 change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'), mask=gdf_boundary)
 change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'), mask=gdf_boundary)
@@ -490,7 +300,7 @@ tif_files = [os.path.abspath(file) for file in glob.glob(os.path.join(clipped__d
 merge_output_dir = os.path.join(script_dir, '../../07_data_prepared/infrastructure')
 os.makedirs(merge_output_dir, exist_ok=True)
 
-merge_tiff_files(tif_files, os.path.join(merge_output_dir,f'build_up_area.tif'))
+merge_tif_files(tif_files, os.path.join(merge_output_dir,f'build_up_area.tif'))
 
 
 change_values_outside_mask(os.path.join(merge_output_dir,f'build_up_area.tif'), os.path.join(merge_output_dir,f'build_up_area.tif'), mask=gdf_boundary)

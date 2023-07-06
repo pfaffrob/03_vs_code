@@ -1,72 +1,10 @@
 ```{python}
-import rasterio
-from rasterio.mask import mask
-import numpy as np
 import matplotlib.pyplot as plt
-import mplcursors
 import geopandas as gpd
 import pandas as pd
-```
-# functions
-
-```{python}
-
-def mask_tif_select_nodata(input_tif, mask_tif, output_tif, nodata_value = [0]):
-    with rasterio.open(input_tif) as src:
-        with rasterio.open(mask_tif) as mask:
-            mask_data = mask.read(1)
-            out_image = src.read()
-            out_image[mask_data == nodata_value] = nodata_value
-            out_meta = src.meta
-            out_meta.update({"nodata": nodata_value})
-            with rasterio.open(output_tif, "w", **out_meta) as dest:
-                dest.write(out_image)
-
+from my_functions import *
 ```
 
-```{python}
-
-def mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=False, nodata_value=None):
-    with rasterio.open(input_tif) as src:
-        with rasterio.open(mask_tif) as mask:
-            mask_data = mask.read()
-            out_image = src.read()
-            if nodata_value is None:
-                nodata_value = src.nodata
-            if nodata_value is None:
-                nodata_value = 0
-            if inside:
-                mask = np.isin(mask_data, mask_values)
-            else:
-                mask = ~np.isin(mask_data, mask_values)
-            if len(mask_data.shape) == 2:
-                out_image[:, mask] = nodata_value
-            else:
-                out_image[mask] = nodata_value
-            out_meta = src.meta
-            out_meta.update({"nodata": nodata_value})
-            with rasterio.open(output_tif, "w", **out_meta) as dest:
-                dest.write(out_image)
-
-```
-
-```{python}
-from rasterio.features import geometry_mask
-def mask_tif_with_shapefile(input_tif, shapefile, output_tif, nodata_value=None):
-    with rasterio.open(input_tif) as src:
-        shapes = gpd.read_file(shapefile)
-        mask = geometry_mask(shapes.geometry, out_shape=src.shape, transform=src.transform, invert=True)
-        out_image = src.read()
-        if nodata_value is None:
-            nodata_value = src.nodata
-        if nodata_value is None:
-            nodata_value = 0
-        out_image[:, ~mask] = nodata_value
-        out_meta = src.meta
-        out_meta.update({"nodata": nodata_value})
-        with rasterio.open(output_tif, "w", **out_meta) as dest:
-            dest.write(out_image)
-```
 
 # analysis forest loss and partially build up areas
 
@@ -455,10 +393,37 @@ plt.savefig(output_png, bbox_inches='tight')
 
 
 ## mask forest loss with oil palm
+### snap raster first
+```{python}
+
+snap_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_gfw_2000_2022_borneo.tif'
+input_tif = '../../07_data_prepared/reduced_extent/oil_palm/utm_detection_year_2000_2017.tif'
+output_tif = '../../07_data_processed/oil_palm/utm_snap_gfw_detection_year_2000_2017.tif'
+
+
+apply_snap_raster(input_tif, snap_tif, output_tif)
+```
+
+
+### now mask
 ```{python}
 input_tif = '../../07_data_prepared/reduced_extent/deforestation/utm_gfw_2000_2022_borneo.tif'
-mask_tif = '../../07_data_prepared/reduced_extent/oil_palm/utm_detection_year_2000_2017.tif'
+mask_tif = '../../08_data_processed/combined/snap_oil_palm_deforestation.tif'
 output_tif = '../../08_data_processed/combined/oil_palm_deforestation.tif'
 
 mask_tif_select_nodata(input_tif, mask_tif, output_tif)
 ```
+
+
+## buffer build up area
+
+```{python}
+
+input_tif = '../../07_data_prepared/reduced_extent/infrastructure/utm_build_up_area.tif'
+output_tif = '../../07_data_prepared/reduced_extent/infrastructure/utm_buffer100_build_up_area.tif'
+buffer_distance_meters = 500
+selected_values = [2]
+
+buffer_tif(input_tif, buffer_distance_meters, output_tif)
+```
+
