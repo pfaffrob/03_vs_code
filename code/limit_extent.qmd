@@ -11,10 +11,10 @@ from my_functions import *
 ```{python}
 import geopandas as gpd
 from shapely.geometry import Polygon
-x= 2980000
-y= -420000
+x= 2780000
+y= -20000
 # Define the coordinates of the bounding box
-minx, miny, maxx, maxy = [0 + x,  + y, 1000 + x, 1000 + y]
+minx, miny, maxx, maxy = [0 + x,  + y, 500000 + x, 500000 + y]
 
 # Create a polygon from the bounding box coordinates
 bbox = Polygon([(minx, miny), (minx, maxy), (maxx, maxy), (maxx, miny)])
@@ -26,7 +26,7 @@ gdf = gpd.GeoDataFrame(geometry=[bbox])
 gdf.crs = "EPSG:23846"
 
 # Export the GeoDataFrame as a shapefile
-gdf.to_file("../../07_data_prepared/reduced_extent/boundary/borneo_boundary_small.shp")
+gdf.to_file("../../07_data_prepared/reduced_extent/boundary/borneo_boundary_large.shp")
 
 ```
 
@@ -34,6 +34,7 @@ gdf.to_file("../../07_data_prepared/reduced_extent/boundary/borneo_boundary_smal
 ```{python}
 gdf_boundary = gpd.read_file("../../07_data_prepared/reduced_extent/boundary/borneo_boundary.shp")
 gdf_boundary_small = gpd.read_file("../../07_data_prepared/reduced_extent/boundary/borneo_boundary_small.shp")
+gdf_boundary_large = gpd.read_file("../../07_data_prepared/reduced_extent/boundary/borneo_boundary_large.shp")
 ```
 
 
@@ -94,7 +95,7 @@ clip_tif_to_bbox("../../07_data_prepared/deforestation/utm_primary_forest_2001.t
 
 # build up area
 ```{python}
-clip_tif_to_bbox("../../07_data_prepared/infrastructure/utm_build_up_area.tif", gdf_boundary_small, "../../07_data_prepared/reduced_extent/infrastructure/utm_build_up_area_small.tif")
+clip_tif_to_bbox("../../07_data_prepared/infrastructure/utm_build_up_area.tif", gdf_boundary_large, "../../07_data_prepared/reduced_extent/infrastructure/utm_build_up_area_large.tif")
 
 ```
 
@@ -103,6 +104,7 @@ clip_tif_to_bbox("../../07_data_prepared/infrastructure/utm_build_up_area.tif", 
 clip_tif_to_bbox("../../07_data_prepared/oil_palm/utm_detection_year_2000_2017.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/oil_palm/utm_detection_year_2000_2017.tif")
 
 clip_tif_to_bbox("../../07_data_prepared/oil_palm/utm_oil_palm_2019_borneo.tif", gdf_boundary, "../../07_data_prepared/reduced_extent/oil_palm/test_utm_oil_palm_2019_borneo.tif")
+clip_tif_to_bbox("../../07_data_prepared/oil_palm/utm_oil_palm_2019_borneo.tif", gdf_boundary, "test.tif")
 ```
 
 # protected areas

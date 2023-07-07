@@ -419,11 +419,56 @@ mask_tif_select_nodata(input_tif, mask_tif, output_tif)
 
 ```{python}
 
-input_tif = '../../07_data_prepared/reduced_extent/infrastructure/utm_build_up_area.tif'
-output_tif = '../../07_data_prepared/reduced_extent/infrastructure/utm_buffer100_build_up_area.tif'
-buffer_distance_meters = 500
-selected_values = [2]
 
+import numpy as np
+from scipy.ndimage import binary_dilation, distance_transform_edt
+
+def buffer_tif(input_file, buffer_distance, output_file, exclude_value=0, included_values=None):
+    with rasterio.open(input_file) as src:
+        A = src.read(1)
+        nodata_value = src.nodata
+        A = np.where(A == nodata_value, 0, A)  # Replace NoData values with 0
+
+        # Calculate the buffer distance in pixels
+        buffer_pixels = int(buffer_distance / src.res[0])  # Assuming square pixels
+
+        # Apply binary dilation to non-zero values
+        unique_vals = np.unique(A)
+        if included_values is not None:
+            included_vals = np.asarray(included_values)
+            unique_vals = np.intersect1d(unique_vals, included_vals)
+        unique_vals = unique_vals[unique_vals != exclude_value]
+
+        # Create the buffer mask for non-zero values
+        buffer_mask = np.isin(A, unique_vals)
+
+        # Calculate the Euclidean distance transform
+        dist_transform = distance_transform_edt(~buffer_mask)
+
+        # Create the buffer result by comparing with the buffer distance
+        buffer_result = dist_transform <= buffer_pixels
+
+        # Write the buffered array to a new TIFF file with LZW compression
+        profile = src.profile
+        profile.update(compress='lzw')
+
+        with rasterio.open(output_file, 'w', **profile) as dst:
+            dst.write(buffer_result.astype(np.uint8), 1)
+
+
+
+
+```
+
+
+```{python}
+
+input_tif = '../../07_data_prepared/infrastructure/utm_build_up_area.tif'
+output_tif = '../../07_data_prepared/infrastructure/utm_buffer2000_build_up_area_borneo.tif'
+buffer_distance_meters = 2000
+selected_values = [1,2]
 buffer_tif(input_tif, buffer_distance_meters, output_tif)
+
+
 ```
 

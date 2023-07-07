@@ -205,6 +205,8 @@ clipped_gdf.to_file(output_path)
 ```
 
 # prepare cropland data
+
+## total cropland
 ```{python}
 import os
 import glob
@@ -264,6 +266,117 @@ reproject_raster("EPSG:23846", os.path.join(merge_output_dir,f'borneo_cropland_2
 
 
 ```
+
+## 2000
+```{python}
+root_folder = '../../06_data/vegetation/crops_2000/HarvestedAreaYield175Crops_Geotiff'
+keyword = 'HarvestedAreaHectares' 
+minimum_area = 1
+
+tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area)
+
+for tif_path in tif_files:
+
+    file_name = os.path.basename(tif_path)
+    # Clip the TIFF to the boundary
+    input_file = tif_path
+    output_directory = "../../07_data_prepared/crop_type/crops_2000/original_crs"
+    clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
+    clip_tif_to_bbox(input_file, gdf_boundary, clipped_output_file)
+
+    # Change values outside the mask to 0
+    input_file = clipped_output_file
+    output_file = os.path.join(output_directory, file_name.replace("_clipped.tif", ".tif"))
+    change_values_outside_mask(input_file, output_file, gdf_boundary, new_value=0)
+    
+    # Delete the clipped TIFF file
+    os.remove(clipped_output_file)
+
+    # Reproject the masked TIFF
+    input_file = output_file
+    output_directory = "../../07_data_prepared/crop_type/crops_2000/utm"
+    output_file = os.path.join(output_directory, "utm_" + file_name)
+    reproject_raster("EPSG:23846", input_file, output_file)
+```
+
+## 2010
+```{python}
+root_folder = '../../06_data/vegetation/crops_2010/spam2010v2r0_global_harv_area.geotiff'
+keyword = 'A.tif' 
+minimum_area = 1
+
+tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area)
+
+for tif_path in tif_files:
+
+    file_name = os.path.basename(tif_path)
+    # Clip the TIFF to the boundary
+    input_file = tif_path
+    output_directory = "../../07_data_prepared/crop_type/crops_2010/original_crs"
+    clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
+    clip_tif_to_bbox(input_file, gdf_boundary, clipped_output_file)
+
+    # Change values outside the mask to 0
+    input_file = clipped_output_file
+    output_file = os.path.join(output_directory, file_name.replace("_clipped.tif", ".tif"))
+    change_values_outside_mask(input_file, output_file, gdf_boundary, new_value=0)
+    
+    # Delete the clipped TIFF file
+    os.remove(clipped_output_file)
+
+    # Reproject the masked TIFF
+    input_file = output_file
+    output_directory = "../../07_data_prepared/crop_type/crops_2010/utm"
+    output_file = os.path.join(output_directory, "utm_" + file_name)
+    reproject_raster("EPSG:23846", input_file, output_file)
+```
+
+## 2015
+```{python}
+root_folder = '../../06_data/vegetation/crops_2015'
+keyword = 'Total' 
+minimum_area = 1
+
+tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area)
+
+for tif_path in tif_files:
+
+    file_name = os.path.basename(tif_path)
+    # Clip the TIFF to the boundary
+    input_file = tif_path
+    output_directory = "../../07_data_prepared/crop_type/crops_2015/original_crs"
+    clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
+    clip_tif_to_bbox(input_file, gdf_boundary, clipped_output_file)
+
+    # Change values outside the mask to 0
+    input_file = clipped_output_file
+    output_file = os.path.join(output_directory, file_name.replace("_clipped.tif", ".tif"))
+    change_values_outside_mask(input_file, output_file, gdf_boundary, new_value=0)
+    
+    # Delete the clipped TIFF file
+    os.remove(clipped_output_file)
+
+    # Reproject the masked TIFF
+    input_file = output_file
+    output_directory = "../../07_data_prepared/crop_type/crops_2015/utm"
+    output_file = os.path.join(output_directory, "utm_" + file_name)
+    reproject_raster("EPSG:23846", input_file, output_file)
+```
+
+```{python}
+import geopandas as gpd
+import os
+
+# Define the GeoDataFrame boundary (gdf_boundary) and EPSG code (epsg)
+epsg = 
+
+# Iterate over the TIFF files in the list
+
+
+```
+
+
+
 
 # prepare infrastructure data
 ```{python}

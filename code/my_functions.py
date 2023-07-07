@@ -89,6 +89,7 @@ def change_values_outside_mask(input_file, output_file, mask, new_value = 0):
             
 # clip to bbox
 def clip_tif_to_bbox(tif_path, gdf_boundary, output_path):
+    from shapely.geometry import box
     # Open the TIFF file
     tif = rasterio.open(tif_path)
 
@@ -312,3 +313,22 @@ def buffer_tif(input_file, buffer_distance, output_file, exclude_value=0, includ
 
         with rasterio.open(output_file, 'w', **profile) as dst:
             dst.write(C.astype(np.uint8), 1)
+            
+            
+def find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area=0):
+    tif_files = []
+    for root, dirs, files in os.walk(root_folder):
+        for file in files:
+            if file.endswith('.tif') and keyword in file:
+                tif_path = os.path.join(root, file)
+                with rasterio.open(tif_path) as src:
+                    # Read the raster data and transform to the boundary's CRS
+                    raster = src.read(1)
+                    transform = src.transform
+                    boundary_geometry = gdf_boundary.unary_union
+                    # Create a mask of the raster within the boundary
+                    mask = geometry_mask([boundary_geometry], out_shape=raster.shape, transform=transform, invert=True)
+                    # Check if there is at least one pixel with a value larger than 0 within the mask
+                    if np.any(np.where(mask, raster > 0, False)):
+                        tif_files.append(tif_path)
+    return tif_files
