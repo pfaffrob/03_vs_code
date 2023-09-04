@@ -1,32 +1,40 @@
 ```{python}
 import os
-import geopandas as gpd
 import matplotlib.pyplot as plt
 import osmnx as ox
+import pyproj
 from my_functions import * 
 ```
 
 
 # import extent
 ```{python}
-crs = "EPSG:4326"
-gdf_boundary = ox.geocode_to_gdf("borneo").dropna(axis=1, how="any").to_crs(crs)
+WGS84 = "EPSG:4326"
+gdf_boundary_WGS84 = ox.geocode_to_gdf("Borneo").dropna(axis=1, how="any").to_crs(WGS84)
+
 # Export the GeoDataFrame as a shapefile
-gdf_boundary.to_file("../../07_data_prepared/boundary/borneo_boundary.shp")
+gdf_boundary_WGS84.to_file("../../07_data_prepared/boundary/borneo_boundary_WGS84.shp")
+
+input_shp = "../../07_data_prepared/boundary/borneo_boundary_WGS84.shp"
+output_shp = "../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp"
+
+reproject_shapefile_to_wktcrs(input_shp, output_shp)
 
 ```
 
-# prepare oil palm data (2019)
+
+
+# prepare oil palm data (state 2019)
 
 ```{python}
 directory = '../../06_data'
 
 oil_palm_2019 = gpd.read_file(os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/grid/grid.shp"))
 
-# Reproject oil_palm_2019 to match the CRS of gdf_boundary
-oil_palm_2019 = oil_palm_2019.to_crs(gdf_boundary.crs)
+# Reproject oil_palm_2019 to match the CRS of gdf_boundary_LAEA_Borneo
+oil_palm_2019 = oil_palm_2019.to_crs(gdf_boundary_LAEA_Borneo.crs)
 
-oil_palm_2019_borneo = oil_palm_2019.clip(gdf_boundary)
+oil_palm_2019_borneo = oil_palm_2019.clip(gdf_boundary_LAEA_Borneo)
 
 # Extract the 'ID' column values as a list
 id_values = oil_palm_2019_borneo['ID'].tolist()
@@ -47,16 +55,17 @@ for value in id_values:
         path = os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/L2_2019b_{value}.tif")
         reclassify_values = {0: 3}
         reclassify(tif_file, path, reclassify_values)
-        clip_tif_to_bbox(path, gdf_boundary, path)
-        change_values_outside_mask(path, path, gdf_boundary, 0)
-        reproject_raster('EPSG:23846', path, os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/utm_L2_2019b_{value}.tif"))
-        reclassified_tif_files.append(os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/utm_L2_2019b_{value}.tif"))
+        clip_tif_to_bbox(path, gdf_boundary_WGS84, path)
+        change_values_outside_mask(path, path, gdf_boundary_WGS84, 0)
+        reproject_raster(LAEA_Borneo, path, os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/LAEA_L2_2019b_{value}.tif"))
+        reclassified_tif_files.append(os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/LAEA_L2_2019b_{value}.tif"))
     else:
         print(f"File not found: {tif_file}")
 
 
 # Merge the processed TIFF files
-merge_tif_files(reclassified_tif_files, '../../07_data_prepared/oil_palm/utm_oil_palm_2019_borneo.tif')
+merge_tif_files(reclassified_tif_files, '../../07_data_prepared/oil_palm/LAEA_oil_palm_2019_borneo.tif')
+
 
 
 ```

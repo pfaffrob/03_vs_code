@@ -1,3 +1,4 @@
+import geopandas as gpd
 import rasterio
 from rasterio import features
 from rasterio.merge import merge
@@ -5,12 +6,17 @@ from rasterio.errors import RasterioIOError
 from rasterio.features import geometry_mask
 from rasterio.mask import mask
 from rasterio.warp import calculate_default_transform, reproject, Resampling
+from rasterio.crs import CRS
 from shapely.geometry import shape, mapping, box
 import numpy as np
-from scipy.ndimage import binary_dilation
+from scipy.ndimage import binary_dilation, distance_transform_edt
 from skimage.morphology import disk
 
-
+# check crs
+def check_crs(tif_file):
+    with rasterio.open(tif_file) as src:
+        crs = src.crs
+        print(f"CRS of {tif_file}: {crs}")
 
 # combine tiff's
 def merge_tif_files(tif_files, output_file):
@@ -115,6 +121,7 @@ def clip_tif_to_bbox(tif_path, gdf_boundary, output_path):
         
 
 # reproject
+## raster to epsg
 def reproject_raster(epsg, input_file_path, output_file_path):
     #open source raster
     srcRst = rasterio.open(input_file_path)
@@ -150,7 +157,83 @@ def reproject_raster(epsg, input_file_path, output_file_path):
             resampling=Resampling.nearest)
     #close destination raster
     dstRst.close()
-    
+
+## raster to custom crs in wkt format
+def reproject_raster_to_wktcrs(input_file_path, output_file_path, wkt_crs = (
+    'PROJCS["Custom Lambert Azimuthal Equal Area",'
+    'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",'
+    'SPHEROID["WGS_1984",6378137,298.257223563]],'
+    'PRIMEM["Greenwich",0],'
+    'UNIT["Degree",0.017453292519943295],'
+    'AUTHORITY["EPSG","4326"]],'
+    'PROJECTION["Lambert_Azimuthal_Equal_Area"],'
+    'PARAMETER["latitude_of_center",0],'
+    'PARAMETER["longitude_of_center",115],'
+    'UNIT["Meter",1],'
+    'AUTHORITY["Custom_CRS","1001"]]'
+    )):
+    # Open source raster
+    srcRst = rasterio.open(input_file_path)
+
+    # Define the custom CRS using WKT
+    custom_crs = CRS.from_string(wkt_crs)
+
+    # Calculate transform array and shape of reprojected raster
+    transform, width, height = calculate_default_transform(
+        srcRst.crs, custom_crs, srcRst.width, srcRst.height, *srcRst.bounds)
+
+    # Update the metadata for the destination raster
+    kwargs = srcRst.meta.copy()
+    kwargs.update({
+        'crs': custom_crs,
+        'transform': transform,
+        'width': width,
+        'height': height,
+        'compress': 'lzw'
+    })
+
+    # Open destination raster
+    dstRst = rasterio.open(output_file_path, 'w', **kwargs)
+
+    # Reproject and save raster band data
+    for i in range(1, srcRst.count + 1):
+        reproject(
+            source=rasterio.band(srcRst, i),
+            destination=rasterio.band(dstRst, i),
+            src_transform=srcRst.transform,
+            src_crs=srcRst.crs,
+            dst_transform=transform,
+            dst_crs=custom_crs,
+            resampling=Resampling.nearest)
+
+    # Close destination raster
+    dstRst.close()
+
+## shapefile to custom wkt crs
+def reproject_shapefile_to_wktcrs(input_shapefile, output_shapefile, custom_wkt_crs = (
+    'PROJCS["Custom Lambert Azimuthal Equal Area",'
+    'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",'
+    'SPHEROID["WGS_1984",6378137,298.257223563]],'
+    'PRIMEM["Greenwich",0],'
+    'UNIT["Degree",0.017453292519943295],'
+    'AUTHORITY["EPSG","4326"]],'
+    'PROJECTION["Lambert_Azimuthal_Equal_Area"],'
+    'PARAMETER["latitude_of_center",0],'
+    'PARAMETER["longitude_of_center",115],'
+    'UNIT["Meter",1],'
+    'AUTHORITY["Custom_CRS","1001"]]'
+    )):
+    # Read the input shapefile
+    gdf = gpd.read_file(input_shapefile)
+
+    # Define the custom CRS using WKT
+    custom_crs = CRS.from_string(custom_wkt_crs)
+
+    # Reproject the GeoDataFrame to the custom CRS
+    gdf_reprojected = gdf.to_crs(custom_crs)
+
+    # Save the reprojected GeoDataFrame to a new shapefile
+    gdf_reprojected.to_file(output_shapefile)
 
 # reclassify
 def reclassify(input_file, output_file, reclassify_values):
@@ -293,26 +376,30 @@ def buffer_tif(input_file, buffer_distance, output_file, exclude_value=0, includ
         A = np.where(A == nodata_value, 0, A)  # Replace NoData values with 0
 
         # Calculate the buffer distance in pixels
-        resolution = src.res[0]  # Assuming square pixels
-        buffer_pixels = int(buffer_distance / resolution)
+        buffer_pixels = int(buffer_distance / src.res[0])  # Assuming square pixels
 
-        # Apply binary dilation with circular structuring element
+        # Apply binary dilation to non-zero values
         unique_vals = np.unique(A)
         if included_values is not None:
             included_vals = np.asarray(included_values)
             unique_vals = np.intersect1d(unique_vals, included_vals)
         unique_vals = unique_vals[unique_vals != exclude_value]
-        C = np.zeros(A.shape).astype(bool)
-        for val in unique_vals:
-            B = binary_dilation(A == val, structure=disk(buffer_pixels))
-            C = C | B  # Combine masks
+
+        # Create the buffer mask for non-zero values
+        buffer_mask = np.isin(A, unique_vals)
+
+        # Calculate the Euclidean distance transform
+        dist_transform = distance_transform_edt(~buffer_mask)
+
+        # Create the buffer result by comparing with the buffer distance
+        buffer_result = dist_transform <= buffer_pixels
 
         # Write the buffered array to a new TIFF file with LZW compression
         profile = src.profile
         profile.update(compress='lzw')
 
         with rasterio.open(output_file, 'w', **profile) as dst:
-            dst.write(C.astype(np.uint8), 1)
+            dst.write(buffer_result.astype(np.uint8), 1)
             
             
 def find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area=0):
