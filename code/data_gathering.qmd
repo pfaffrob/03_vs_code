@@ -1,8 +1,8 @@
 ```{python}
-import os
 import matplotlib.pyplot as plt
 import osmnx as ox
 import pyproj
+import glob
 from my_functions import * 
 ```
 
@@ -27,14 +27,17 @@ reproject_shapefile_to_wktcrs(input_shp, output_shp)
 # prepare oil palm data (state 2019)
 
 ```{python}
-directory = '../../06_data'
 
-oil_palm_2019 = gpd.read_file(os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/grid/grid.shp"))
+
+oil_palm_2019 = gpd.read_file("../../06_data/vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/grid/grid.shp")
 
 # Reproject oil_palm_2019 to match the CRS of gdf_boundary_LAEA_Borneo
-oil_palm_2019 = oil_palm_2019.to_crs(gdf_boundary_LAEA_Borneo.crs)
+input_shp = "../../06_data/vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/grid/grid.shp"
+output_shp = "../../07_data_prepared/oil_palm/shp_grid/grid_LAEA_Borneo.shp"
 
-oil_palm_2019_borneo = oil_palm_2019.clip(gdf_boundary_LAEA_Borneo)
+reproject_shapefile_to_wktcrs(input_shp, output_shp)
+
+oil_palm_2019_borneo = gpd.read_file("../../07_data_prepared/oil_palm/shp_grid/grid_LAEA_Borneo.shp").clip(gpd.read_file("../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp"))
 
 # Extract the 'ID' column values as a list
 id_values = oil_palm_2019_borneo['ID'].tolist()
@@ -47,17 +50,24 @@ tif_files = []
 reclassified_tif_files = []
 
 # Construct the TIFF file paths and reclassify the individual TIFF files
+directory = '../../06_data'
 
 for value in id_values:
     tif_file = os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_map/L2_2019b_{value}.tif")
     if os.path.exists(tif_file):
         tif_files.append(tif_file)
-        path = os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/L2_2019b_{value}.tif")
+        path = os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/LAEA_L2_2019b_{value}.tif")
         reclassify_values = {0: 3}
         reclassify(tif_file, path, reclassify_values)
         clip_tif_to_bbox(path, gdf_boundary_WGS84, path)
         change_values_outside_mask(path, path, gdf_boundary_WGS84, 0)
-        reproject_raster(LAEA_Borneo, path, os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/LAEA_L2_2019b_{value}.tif"))
+
+        reproject_raster_to_wktcrs(path, os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/LAEA_L2_2019b_{value}.tif"))
+
+
+        #reproject_raster(LAEA_Borneo, path, os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/LAEA_L2_2019b_{value}.tif"))
+
+
         reclassified_tif_files.append(os.path.join(directory, f"vegetation/oil_palm/High_resolution_global_industrial_and_smallholder_oil_palm_map_for_2019/oil_palm_reclasssified_borneo/LAEA_L2_2019b_{value}.tif"))
     else:
         print(f"File not found: {tif_file}")
@@ -77,9 +87,9 @@ tif_files = ['../../06_data/vegetation/oil_palm/year_of_detection/op_extent_age_
 
 merge_tif_files(tif_files, '../../07_data_prepared/oil_palm/detection_year.tif')
 
-clip_tif_to_bbox('../../07_data_prepared/oil_palm/detection_year.tif', gdf_boundary, '../../07_data_prepared/oil_palm/detection_year.tif')
+clip_tif_to_bbox('../../07_data_prepared/oil_palm/detection_year.tif', gdf_boundary_WGS84, '../../07_data_prepared/oil_palm/detection_year.tif')
 
-change_values_outside_mask('../../07_data_prepared/oil_palm/detection_year.tif', '../../07_data_prepared/oil_palm/detection_year.tif', gdf_boundary, 0)
+change_values_outside_mask('../../07_data_prepared/oil_palm/detection_year.tif', '../../07_data_prepared/oil_palm/detection_year.tif', gdf_boundary_WGS84, 0)
 
 # data information: The data values range from 0 to 37 where 0 is no data and subsequent numbers run through until 2017, the last year of our analysis. A value of 4 corresponds to the year 1984, the first year oil palm was detected and 37 corresponds to 2017. Values 1 to 3 are not present.
 # --> therefore every yea
@@ -106,8 +116,8 @@ reclassify('../../07_data_prepared/oil_palm/detection_year.tif', '../../07_data_
 
 
 
-# reproject to epsg:23846
-reproject_raster('EPSG:23846', '../../07_data_prepared/oil_palm/detection_year_2000_2017.tif', '../../07_data_prepared/oil_palm/utm_detection_year_2000_2017.tif')
+# reproject to LAEA Borneo
+reproject_raster_to_wktcrs('../../07_data_prepared/oil_palm/detection_year_2000_2017.tif', '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif')
 
 ```
 
@@ -121,12 +131,12 @@ tif_files = ['../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1
 
 merge_tif_files(tif_files, '../../07_data_prepared/deforestation/gfw_lossyear_2000_2022_borneo.tif')
 
-clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_lossear_2000_2022_borneo.tif', gdf_boundary, '../../07_data_prepared/deforestation/gfw_2000_2022_borneo.tif')
+clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_lossear_2000_2022_borneo.tif', gdf_boundary_WGS84, '../../07_data_prepared/deforestation/gfw_2000_2022_borneo.tif')
 
-change_values_outside_mask('../../07_data_prepared/deforestation/gfw_lossyear_2000_2022_borneo.tif', '../../07_data_prepared/deforestation/gfw_2000_2022_borneo.tif', gdf_boundary, 0)
+change_values_outside_mask('../../07_data_prepared/deforestation/gfw_lossyear_2000_2022_borneo.tif', '../../07_data_prepared/deforestation/gfw_2000_2022_borneo.tif', gdf_boundary_WGS84, 0)
 
-# reproject to epsg:23846
-reproject_raster('EPSG:23846', '../../07_data_prepared/deforestation/gfw_lossyear_2000_2022_borneo.tif', '../../07_data_prepared/deforestation/utm_gfw_2000_2022_borneo.tif')
+# reproject to LAEA Projection
+reproject_raster_to_wktcrs('../../07_data_prepared/deforestation/gfw_2000_2022_borneo.tif', '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif')
 
 ```
 
@@ -136,12 +146,12 @@ tif_files = ['../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1
 
 merge_tif_files(tif_files, '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif')
 
-clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', gdf_boundary, '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif')
+clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', gdf_boundary_WGS84, '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif')
 
-change_values_outside_mask('../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', gdf_boundary, 0)
+change_values_outside_mask('../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', gdf_boundary_WGS84, 0)
 
 # reproject to epsg:23846
-reproject_raster('EPSG:23846', '../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', '../../07_data_prepared/deforestation/utm_gfw_fcover_2000_borneo.tif')
+reproject_raster_to_wktcrs('../../07_data_prepared/deforestation/gfw_fcover_2000_borneo.tif', '../../07_data_prepared/deforestation/LAEA_gfw_fcover_2000_borneo.tif')
 
 ```
 
@@ -151,35 +161,35 @@ tif_files = ['../../06_data/deforestation/global_forest_watch/Hansen_GFC_2021_v1
 
 merge_tif_files(tif_files, '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif')
 
-clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', gdf_boundary, '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif')
+clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', gdf_boundary_WGS84, '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif')
 
-change_values_outside_mask('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', gdf_boundary, 0)
+change_values_outside_mask('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', gdf_boundary_WGS84, 0)
 
 # reproject to epsg:23846
-reproject_raster('EPSG:23846', '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', '../../07_data_prepared/deforestation/utm_gfw_gain_2000_2012_borneo_test.tif')
+reproject_raster_to_wktcrs('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', '../../07_data_prepared/deforestation/LAEA_gfw_gain_2000_2012_borneo_test.tif')
 
 ```
 
 
 # prepare forest fire data
 ```{python}
-clip_tif_to_bbox('../../06_data/deforestation/forest_fires/fire_forest_loss_2001-22_annual.tiff', gdf_boundary, '../../07_data_prepared/deforestation/forest_fires.tif')
+clip_tif_to_bbox('../../06_data/deforestation/forest_fires/fire_forest_loss_2001-22_annual.tiff', gdf_boundary_WGS84, '../../07_data_prepared/deforestation/forest_fires.tif')
 
-change_values_outside_mask('../../07_data_prepared/deforestation/forest_fires.tif', '../../07_data_prepared/deforestation/forest_fires.tif', gdf_boundary, 0)
+change_values_outside_mask('../../07_data_prepared/deforestation/forest_fires.tif', '../../07_data_prepared/deforestation/forest_fires.tif', gdf_boundary_WGS84, 0)
 
 # reproject to epsg:23846
-reproject_raster('EPSG:23846', '../../07_data_prepared/deforestation/forest_fires.tif', '../../07_data_prepared/deforestation/utm_forest_fires.tif')
+reproject_raster_to_wktcrs('../../07_data_prepared/deforestation/forest_fires.tif', '../../07_data_prepared/deforestation/LAEA_forest_fires.tif')
 
 ```
 
 # primary forest
 ```{python}
-clip_tif_to_bbox('../../06_data/deforestation/primary_forest/Asia_2001_primary.tif', gdf_boundary, '../../07_data_prepared/deforestation/primary_forest_2001.tif')
+clip_tif_to_bbox('../../06_data/deforestation/primary_forest/Asia_2001_primary.tif', gdf_boundary_WGS84, '../../07_data_prepared/deforestation/primary_forest_2001.tif')
 
-change_values_outside_mask('../../07_data_prepared/deforestation/primary_forest_2001.tif', '../../07_data_prepared/deforestation/primary_forest_2001.tif', gdf_boundary, 0)
+change_values_outside_mask('../../07_data_prepared/deforestation/primary_forest_2001.tif', '../../07_data_prepared/deforestation/primary_forest_2001.tif', gdf_boundary_WGS84, 0)
 
 # reproject to epsg:23846
-reproject_raster('EPSG:23846', '../../07_data_prepared/deforestation/primary_forest_2001.tif', '../../07_data_prepared/deforestation/utm_primary_forest_2001.tif')
+reproject_raster_to_wktcrs('../../07_data_prepared/deforestation/primary_forest_2001.tif', '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif')
 ```
 
 # clip protected areas to boundary
@@ -187,14 +197,15 @@ reproject_raster('EPSG:23846', '../../07_data_prepared/deforestation/primary_for
 shapefile_path = "../../06_data/protected_areas/WDPA_WDOECM_Apr2023_Public_AS_shp/WDPA_WDOECM_Apr2023_Public_AS_shp_0/WDPA_WDOECM_Apr2023_Public_AS_shp-polygons.shp"
 shapefile_gdf = gpd.read_file(shapefile_path)
 
-gdf_boundary = ox.geocode_to_gdf("borneo").dropna(axis=1, how="any")
+clipped_gdf = gpd.clip(shapefile_gdf, gdf_boundary_WGS84.geometry)
 
-clipped_gdf = gpd.clip(shapefile_gdf, gdf_boundary.geometry)
+clipped_gdf.to_file("../../07_data_prepared/protected_areas/protected_areas_borneo.shp")
 
-clipped_gdf = clipped_gdf.to_crs("EPSG:23846")
+input_shp = "../../07_data_prepared/protected_areas/protected_areas_borneo.shp"
+output_shp = "../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp"
 
-output_path = "../../07_data_prepared/protected_areas/protected_areas_borneo.shp"
-clipped_gdf.to_file(output_path)
+reproject_shapefile_to_wktcrs(input_shp, output_shp)
+
 ```
 
 # RSPO concessions
@@ -203,22 +214,20 @@ shapefile_path = "../../06_data/RSPO/RSPO_Concessions_Versions6_20Jan2023.shp"
 shapefile_gdf = gpd.read_file(shapefile_path)
 shapefile_gdf = shapefile_gdf.to_crs(epsg=4326)
 
-gdf_boundary = ox.geocode_to_gdf("borneo").dropna(axis=1, how="any")
+clipped_gdf = gpd.clip(shapefile_gdf, gdf_boundary_WGS84.geometry)
 
-clipped_gdf = gpd.clip(shapefile_gdf, gdf_boundary.geometry)
+clipped_gdf.to_file("../../07_data_prepared/RSPO/WGS84_RSPO_2023.shp")
 
-clipped_gdf = clipped_gdf.to_crs("EPSG:23846")
+input_shp = "../../07_data_prepared/RSPO/WGS84_RSPO_2023.shp"
+output_shp = "../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp"
 
-output_path = "../../07_data_prepared/RSPO/utm_RSPO_2023.shp"
-clipped_gdf.to_file(output_path)
+reproject_shapefile_to_wktcrs(input_shp, output_shp)
 ```
 
 # prepare cropland data
 
 ## total cropland
 ```{python}
-import os
-import glob
 
 # Save the current working directory
 script_dir = os.path.abspath(os.path.dirname(__file__))
@@ -242,7 +251,7 @@ for file in tif_files:
     output_path = os.path.join(clipped_cropland_dir, output_file)
 
     # Clip the TIFF file
-    clip_tif_to_bbox(file, gdf_boundary, output_path)
+    clip_tif_to_bbox(file, gdf_boundary_WGS84, output_path)
 
 tif_files_2003 = [os.path.join(clipped_cropland_dir,  'borneo_cropland_NE_2003.tif'), os.path.join(clipped_cropland_dir,  'borneo_cropland_SE_2003.tif')]
 tif_files_2007 = [os.path.join(clipped_cropland_dir,  'borneo_cropland_NE_2007.tif'), os.path.join(clipped_cropland_dir,  'borneo_cropland_SE_2007.tif')]
@@ -250,7 +259,6 @@ tif_files_2011 = [os.path.join(clipped_cropland_dir,  'borneo_cropland_NE_2011.t
 tif_files_2015 = [os.path.join(clipped_cropland_dir,  'borneo_cropland_NE_2015.tif'), os.path.join(clipped_cropland_dir,  'borneo_cropland_SE_2015.tif')]
 tif_files_2019 = [os.path.join(clipped_cropland_dir,  'borneo_cropland_NE_2019.tif'), os.path.join(clipped_cropland_dir,  'borneo_cropland_SE_2019.tif')]
 
-print(tif_files_2003)
 # Set the output directory for the merged TIFF files
 merge_output_dir = os.path.join(script_dir, '../../07_data_prepared/cropland')
 os.makedirs(merge_output_dir, exist_ok=True)
@@ -261,17 +269,17 @@ merge_tif_files(tif_files_2011, os.path.join(merge_output_dir,f'borneo_cropland_
 merge_tif_files(tif_files_2015, os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'))
 merge_tif_files(tif_files_2019, os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'))
 
-change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'), mask=gdf_boundary)
-change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'), mask=gdf_boundary)
-change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2011.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2011.tif'), mask=gdf_boundary)
-change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'), mask=gdf_boundary)
-change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'), mask=gdf_boundary)
+change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'), mask=gdf_boundary_WGS84)
+change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'), mask=gdf_boundary_WGS84)
+change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2011.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2011.tif'), mask=gdf_boundary_WGS84)
+change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'), mask=gdf_boundary_WGS84)
+change_values_outside_mask(os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'), os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'), mask=gdf_boundary_WGS84)
 
-reproject_raster("EPSG:23846", os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'), os.path.join(merge_output_dir,f'utm_borneo_cropland_2003.tif'))
-reproject_raster("EPSG:23846", os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'), os.path.join(merge_output_dir,f'utm_borneo_cropland_2007.tif'))
-reproject_raster("EPSG:23846", os.path.join(merge_output_dir,f'borneo_cropland_2011.tif'), os.path.join(merge_output_dir,f'utm_borneo_cropland_2011.tif'))
-reproject_raster("EPSG:23846", os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'), os.path.join(merge_output_dir,f'utm_borneo_cropland_2015.tif'))
-reproject_raster("EPSG:23846", os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'), os.path.join(merge_output_dir,f'utm_borneo_cropland_2019.tif'))
+reproject_raster_to_wktcrs(os.path.join(merge_output_dir,f'borneo_cropland_2003.tif'), os.path.join(merge_output_dir,f'LAEA_borneo_cropland_2003.tif'))
+reproject_raster_to_wktcrs(os.path.join(merge_output_dir,f'borneo_cropland_2007.tif'), os.path.join(merge_output_dir,f'LAEA_borneo_cropland_2007.tif'))
+reproject_raster_to_wktcrs(os.path.join(merge_output_dir,f'borneo_cropland_2011.tif'), os.path.join(merge_output_dir,f'LAEA_borneo_cropland_2011.tif'))
+reproject_raster_to_wktcrs(os.path.join(merge_output_dir,f'borneo_cropland_2015.tif'), os.path.join(merge_output_dir,f'LAEA_borneo_cropland_2015.tif'))
+reproject_raster_to_wktcrs(os.path.join(merge_output_dir,f'borneo_cropland_2019.tif'), os.path.join(merge_output_dir,f'LAEA_borneo_cropland_2019.tif'))
 
 
 ```
@@ -282,7 +290,7 @@ root_folder = '../../06_data/vegetation/crops_2000/HarvestedAreaYield175Crops_Ge
 keyword = 'HarvestedAreaHectares' 
 minimum_area = 1
 
-tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area)
+tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary_WGS84, keyword, minimum_area)
 
 for tif_path in tif_files:
 
@@ -291,21 +299,21 @@ for tif_path in tif_files:
     input_file = tif_path
     output_directory = "../../07_data_prepared/crop_type/crops_2000/original_crs"
     clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
-    clip_tif_to_bbox(input_file, gdf_boundary, clipped_output_file)
+    clip_tif_to_bbox(input_file, gdf_boundary_WGS84, clipped_output_file)
 
     # Change values outside the mask to 0
     input_file = clipped_output_file
     output_file = os.path.join(output_directory, file_name.replace("_clipped.tif", ".tif"))
-    change_values_outside_mask(input_file, output_file, gdf_boundary, new_value=0)
+    change_values_outside_mask(input_file, output_file, gdf_boundary_WGS84, new_value=0)
     
     # Delete the clipped TIFF file
     os.remove(clipped_output_file)
 
     # Reproject the masked TIFF
     input_file = output_file
-    output_directory = "../../07_data_prepared/crop_type/crops_2000/utm"
-    output_file = os.path.join(output_directory, "utm_" + file_name)
-    reproject_raster("EPSG:23846", input_file, output_file)
+    output_directory = "../../07_data_prepared/crop_type/crops_2000/LAEA"
+    output_file = os.path.join(output_directory, "LAEA_" + file_name)
+    reproject_raster_to_wktcrs(input_file, output_file)
 ```
 
 ## 2010
@@ -314,7 +322,7 @@ root_folder = '../../06_data/vegetation/crops_2010/spam2010v2r0_global_harv_area
 keyword = 'A.tif' 
 minimum_area = 1
 
-tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area)
+tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary_WGS84, keyword, minimum_area)
 
 for tif_path in tif_files:
 
@@ -323,21 +331,21 @@ for tif_path in tif_files:
     input_file = tif_path
     output_directory = "../../07_data_prepared/crop_type/crops_2010/original_crs"
     clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
-    clip_tif_to_bbox(input_file, gdf_boundary, clipped_output_file)
+    clip_tif_to_bbox(input_file, gdf_boundary_WGS84, clipped_output_file)
 
     # Change values outside the mask to 0
     input_file = clipped_output_file
     output_file = os.path.join(output_directory, file_name.replace("_clipped.tif", ".tif"))
-    change_values_outside_mask(input_file, output_file, gdf_boundary, new_value=0)
+    change_values_outside_mask(input_file, output_file, gdf_boundary_WGS84, new_value=0)
     
     # Delete the clipped TIFF file
     os.remove(clipped_output_file)
 
     # Reproject the masked TIFF
     input_file = output_file
-    output_directory = "../../07_data_prepared/crop_type/crops_2010/utm"
-    output_file = os.path.join(output_directory, "utm_" + file_name)
-    reproject_raster("EPSG:23846", input_file, output_file)
+    output_directory = "../../07_data_prepared/crop_type/crops_2010/LAEA"
+    output_file = os.path.join(output_directory, "LAEA_" + file_name)
+    reproject_raster_to_wktcrs(input_file, output_file)
 ```
 
 ## 2015
@@ -346,7 +354,7 @@ root_folder = '../../06_data/vegetation/crops_2015'
 keyword = 'Total' 
 minimum_area = 1
 
-tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area)
+tif_files = find_tif_files_with_polygon(root_folder, gdf_boundary_WGS84, keyword, minimum_area)
 
 for tif_path in tif_files:
 
@@ -355,42 +363,27 @@ for tif_path in tif_files:
     input_file = tif_path
     output_directory = "../../07_data_prepared/crop_type/crops_2015/original_crs"
     clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
-    clip_tif_to_bbox(input_file, gdf_boundary, clipped_output_file)
+    clip_tif_to_bbox(input_file, gdf_boundary_WGS84, clipped_output_file)
 
     # Change values outside the mask to 0
     input_file = clipped_output_file
     output_file = os.path.join(output_directory, file_name.replace("_clipped.tif", ".tif"))
-    change_values_outside_mask(input_file, output_file, gdf_boundary, new_value=0)
+    change_values_outside_mask(input_file, output_file, gdf_boundary_WGS84, new_value=0)
     
     # Delete the clipped TIFF file
     os.remove(clipped_output_file)
 
     # Reproject the masked TIFF
     input_file = output_file
-    output_directory = "../../07_data_prepared/crop_type/crops_2015/utm"
-    output_file = os.path.join(output_directory, "utm_" + file_name)
-    reproject_raster("EPSG:23846", input_file, output_file)
+    output_directory = "../../07_data_prepared/crop_type/crops_2015/LAEA"
+    output_file = os.path.join(output_directory, "LAEA_" + file_name)
+    reproject_raster_to_wktcrs(input_file, output_file)
 ```
-
-```{python}
-import geopandas as gpd
-import os
-
-# Define the GeoDataFrame boundary (gdf_boundary) and EPSG code (epsg)
-epsg = 
-
-# Iterate over the TIFF files in the list
-
-
-```
-
-
 
 
 # prepare infrastructure data
 ```{python}
-import os
-import glob
+
 
 # Save the current working directory
 script_dir = os.path.abspath(os.path.dirname(__file__))
@@ -414,7 +407,7 @@ for file in tif_files:
     output_path = os.path.join(clipped__dir, output_file)
 
     # Clip the TIFF file
-    clip_tif_to_bbox(file, gdf_boundary, output_path)
+    clip_tif_to_bbox(file, gdf_boundary_WGS84, output_path)
 
 tif_files = [os.path.abspath(file) for file in glob.glob(os.path.join(clipped__dir, '*.tif'))]
 
@@ -425,10 +418,10 @@ os.makedirs(merge_output_dir, exist_ok=True)
 merge_tif_files(tif_files, os.path.join(merge_output_dir,f'build_up_area.tif'))
 
 
-change_values_outside_mask(os.path.join(merge_output_dir,f'build_up_area.tif'), os.path.join(merge_output_dir,f'build_up_area.tif'), mask=gdf_boundary)
+change_values_outside_mask(os.path.join(merge_output_dir,f'build_up_area.tif'), os.path.join(merge_output_dir,f'build_up_area.tif'), mask=gdf_boundary_WGS84)
 
 
-reproject_raster("EPSG:23846", os.path.join(merge_output_dir,f'build_up_area.tif'), os.path.join(merge_output_dir,f'utm_build_up_area.tif'))
+reproject_raster_to_wktcrs(os.path.join(merge_output_dir,f'build_up_area.tif'), os.path.join(merge_output_dir,f'LAEA_build_up_area.tif'))
 
 
 

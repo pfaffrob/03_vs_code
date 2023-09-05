@@ -1,4 +1,6 @@
 import geopandas as gpd
+import os
+import _osx_support
 import rasterio
 from rasterio import features
 from rasterio.merge import merge

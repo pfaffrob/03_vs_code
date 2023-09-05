@@ -1,14 +1,16 @@
-```{python}
+# type: ignore
+# flake8: noqa
+#
 import matplotlib.pyplot as plt
 import pandas as pd
 from my_functions import *
-```
-
-
-# analysis forest loss and partially build up areas
-
-## How much forest was lost yearly? (total)
-```{python}
+#
+#
+#
+#
+#
+#
+#
 ## Set variables for the title and paths
 title = 'Borneo Total Forest Loss 2001 - 2021'
 input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
@@ -53,10 +55,10 @@ ax.set_title(title)
 
 ## save the plot as a .png file with extra space around the edges
 plt.savefig(output_png, bbox_inches='tight')
-```
-
-## How much forest was lost yearly to forest fires?
-```{python}
+#
+#
+#
+#
 ## Set variables for the title and paths
 title = 'Borneo Total Forest Loss (Forest Fires) 2001 - 2021'
 input_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
@@ -101,20 +103,20 @@ ax.set_title(title)
 
 ## save the plot as a .png file with extra space around the edges
 plt.savefig(output_png, bbox_inches='tight')
-```
-
-
-## mask forest loss with primary forest
-```{python}
+#
+#
+#
+#
+#
 input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
 mask_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
 output_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
 
 mask_tif_select_nodata(input_tif, mask_tif, output_tif)
-```
-
-## How much primary forest was lost yearly?
-```{python}
+#
+#
+#
+#
 ## Set variables for the title and paths
 title = 'Borneo Total Primary Forest Loss 2001 - 2021'
 input_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
@@ -159,21 +161,21 @@ ax.set_title(title)
 
 ## save the plot as a .png file with extra space around the edges
 plt.savefig(output_png, bbox_inches='tight')
-```
-
-
-## mask forest loss with new build up areas
-```{python}
+#
+#
+#
+#
+#
 
 input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
 mask_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
 output_tif = '../../08_data_processed/combined/deforestation_new_build_up_area.tif'
 
 mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
-```
-
-## How much new build up areas was created on forest loss areas (2020 compared to 2000)?
-```{python}
+#
+#
+#
+#
 ## Set variables for the title and paths
 title = 'Borneo Forest Loss to build up areas 2001 - 2021'
 input_tif = '../../08_data_processed/combined/deforestation_new_build_up_area.tif'
@@ -218,22 +220,22 @@ ax.set_title(title)
 
 ## save the plot as a .png file with extra space around the edges
 plt.savefig(output_png, bbox_inches='tight')
-```
-
-
-
-## mask forest fire loss with new build up areas
-```{python}
+#
+#
+#
+#
+#
+#
 
 input_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
 mask_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
 output_tif = '../../08_data_processed/combined/forest_fires_new_build_up_area.tif'
 
 mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
-```
-
-## How much new build up areas was created on forest-fire loss areas (2020 compared to 2000)?
-```{python}
+#
+#
+#
+#
 ## Set variables for the title and paths
 title = 'Borneo Forest Loss to build up areas by forest fires 2001 - 2021'
 input_tif = '../../08_data_processed/combined/forest_fires_new_build_up_area.tif'
@@ -278,21 +280,21 @@ ax.set_title(title)
 
 ## save the plot as a .png file with extra space around the edges
 plt.savefig(output_png, bbox_inches='tight')
-```
-
-
-## mask deforestation with protected areas
-```{python}
+#
+#
+#
+#
+#
 
 input_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
 mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
 output_tif = '../../08_data_processed/combined/deforestation_protected_areas.tif'
 
 mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
-```
-
-## How much much forest was lost in protected areas yearly?
-```{python}
+#
+#
+#
+#
 ## Set variables for the title and paths
 title = 'Forest loss in protected areas'
 input_tif = '../../08_data_processed/combined/deforestation_protected_areas.tif'
@@ -337,13 +339,13 @@ ax.set_title(title)
 
 ## save the plot as a .png file with extra space around the edges
 plt.savefig(output_png, bbox_inches='tight')
-```
-
-# oil palm
-
-## yearly new oil palm plantation
-
-```{python}
+#
+#
+#
+#
+#
+#
+#
 ## Set variables for the title and paths
 title = 'Borneo new oil palm plantations (2001 - 2017)'
 input_tif = '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif'
@@ -388,14 +390,12 @@ ax.set_title(title)
 
 ## save the plot as a .png file with extra space around the edges
 plt.savefig(output_png, bbox_inches='tight')
-```
-
-
-######################## finished upon here!!! ###############################
-
-## mask forest loss with oil palm
-### snap raster first
-```{python}
+#
+#
+#
+#
+#
+#
 
 snap_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
 input_tif = '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif'
@@ -403,21 +403,21 @@ output_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_
 
 
 snap_raster(input_tif, snap_tif, output_tif)
-```
-
-
-### now mask
-```{python}
+#
+#
+#
+#
+#
 input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
 mask_tif = '../../08_data_processed/combined/snap_oil_palm_deforestation.tif'
 output_tif = '../../08_data_processed/combined/oil_palm_deforestation.tif'
 
 mask_tif_select_nodata(input_tif, mask_tif, output_tif)
-```
-
-
-## buffer build up area
-```{python}
+#
+#
+#
+#
+#
 
 input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
 output_tif = '../../07_data_prepared/infrastructure/LAEA_buffer_build_up_area_borneo.tif'
@@ -425,5 +425,8 @@ buffer_distances = [500, 1000, 2000]
 
 for buffer_distance in buffer_distances:
     buffer_tif(input_tif, buffer_distance, output_tif.replace("_buffer", "_buffer_" + str(buffer_distance) + "_output.tif"))
-```
-
+#
+#
+#
+#
+#
