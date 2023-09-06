@@ -1,0 +1,84 @@
+project:
+  type: book
+
+book:
+  title: Quantification of deforestation on Borneo in the last 20 years based on open source geodata
+  author: "Robin Pfaff"
+  date: "6/27/2023"
+  chapters:
+    - index.qmd
+    - 04_literature_review.qmd
+    - 05_method.qmd
+    - 06_results.qmd
+    - 07_discussion.qmd
+    - 08_annex.qmd
+
+bibliography: bibliography/BA.bib
+csl: bibliography/APA_7th.csl
+filters: [remove_title.lua]
+link-citations: true
+colorlinks: true
+linkcolor: black
+header-includes:
+  - \usepackage{fontspec}
+  - \setmainfont{Arial}
+  - \setsansfont{Arial}
+  - \usepackage{xcolor}
+  - \usepackage{anyfontsize}
+  - \fontsize{12}{18}\selectfont
+  - \usepackage{booktabs}
+  - \usepackage{graphicx}
+  - \usepackage[nottoc]{tocbibind}
+  - \usepackage{natbib}
+  - \renewcommand{\bibsection}{}
+  - \usepackage[a4paper, top=2.5cm, bottom=3cm, left=2.5cm, right=2.5cm]{geometry}
+  - \usepackage{tocloft}
+  - \setlength{\cftbeforetoctitleskip}{0pt}
+  - \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+  - \usepackage{scrhack} # Add scrhack to improve compatibility with other packages
+  - \usepackage{etoolbox}
+  - \makeatletter
+  - \patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
+  - \makeatother
+
+format:
+  pdf:
+    documentclass: scrreprt
+    keep-tex: true
+    toc: true
+    include-before-body:
+      - 00_cover.tex
+      - 01_imprint.tex
+      - 02_abstract.tex
+    header-includes:
+      - \RedeclareSectionCommand[
+          beforeskip=12pt plus 1pt minus 1pt,
+          afterskip=6pt plus 1pt minus 1pt,
+          font=\fontsize{16pt}{20pt}\bfseries\sffamily,
+        ]{chapter}
+      - \RedeclareSectionCommand[
+          beforeskip=10pt plus 1pt minus 1pt,
+          afterskip=5pt plus 1pt minus 1pt,
+          font=\fontsize{14pt}{18pt}\bfseries\sffamily,
+        ]{section}
+      - \RedeclareSectionCommand[
+          beforeskip=8pt plus 1pt minus 1pt,
+          afterskip=4pt plus 1pt minus 1pt,
+          font=\fontsize{12pt}{16pt}\bfseries\sffamily,
+        ]{subsection}
+      - \RedeclareSectionCommand[
+          beforeskip=6pt plus 1pt minus 1pt,
+          afterskip=3pt plus 1pt minus 1pt,
+          font=\fontsize{10pt}{14pt}\bfseries\sffamily,
+        ]{subsubsection}
+      - \RedeclareSectionCommand[
+          beforeskip=4pt plus 1pt minus 1pt,
+          afterskip=2pt plus 1pt minus 1pt,
+          font=\fontsize{10pt}{12pt}\bfseries\sffamily,
+        ]{paragraph}
+      - \RedeclareSectionCommand[
+          beforeskip=2pt plus 1pt minus 1pt,
+          afterskip=1pt plus 1pt minus 1pt,
+          font=\fontsize{8pt}{10pt}\bfseries\sffamily,
+        ]{subparagraph}
+

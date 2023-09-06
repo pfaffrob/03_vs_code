@@ -1,0 +1,37 @@
+# Method
+
+## Data Collection
+
+### Data Source
+
+The data used in this analysis was obtained from the `mtcars.csv` file. This file contains data on various car models, including their miles per gallon (mpg), number of cylinders, horsepower, and other characteristics. (see @tbl-mytable3)
+
+```{python}
+#| echo: false
+#| label: tbl-mytable3
+#| tbl-cap: mycaption
+
+import pandas as pd
+from IPython.display import Markdown
+from tabulate import tabulate
+
+# Load the mtcars dataset from the CSV file
+df = pd.read_csv("mtcars.csv")
+
+# Select columns for the table
+table = df[["model", "mpg", "cyl"]].head(4).values.tolist()
+
+# Generate markdown table
+table_md = tabulate(
+    table,
+    headers=["Car", "MPG", "Cylinders"],
+    tablefmt="pipe"
+)
+
+# Display markdown table
+Markdown(table_md)
+
+```
+
+
+
