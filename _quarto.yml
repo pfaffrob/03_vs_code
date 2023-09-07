@@ -7,11 +7,12 @@ book:
   date: "6/27/2023"
   chapters:
     - index.qmd
-    - 04_literature_review.qmd
-    - 05_method.qmd
-    - 06_results.qmd
-    - 07_discussion.qmd
-    - 08_annex.qmd
+    - text/03_introduction.qmd
+    - text/04_literature_review.qmd
+    - text/05_method.qmd
+    - text/06_results.qmd
+    - text/07_discussion.qmd
+    - text/08_annex.qmd
 
 bibliography: bibliography/BA.bib
 csl: bibliography/APA_7th.csl
@@ -25,7 +26,7 @@ header-includes:
   - \setsansfont{Arial}
   - \usepackage{xcolor}
   - \usepackage{anyfontsize}
-  - \fontsize{12}{18}\selectfont
+  - \fontsize{11}{16}\selectfont
   - \usepackage{booktabs}
   - \usepackage{graphicx}
   - \usepackage[nottoc]{tocbibind}
@@ -45,11 +46,10 @@ format:
   pdf:
     documentclass: scrreprt
     keep-tex: true
-    toc: true
+    toc: False
     include-before-body:
-      - 00_cover.tex
-      - 01_imprint.tex
-      - 02_abstract.tex
+      - text/00_cover.tex
+      - text/01_imprint.tex
     header-includes:
       - \RedeclareSectionCommand[
           beforeskip=12pt plus 1pt minus 1pt,

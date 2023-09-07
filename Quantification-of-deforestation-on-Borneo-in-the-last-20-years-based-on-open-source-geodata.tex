@@ -107,7 +107,7 @@
 \setsansfont{Arial}
 \usepackage{xcolor}
 \usepackage{anyfontsize}
-\fontsize{12}{18}\selectfont
+\fontsize{11}{16}\selectfont
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage[nottoc]{tocbibind}
@@ -247,33 +247,60 @@ APA 7th edition
 \noindent\textbf{Keywords}\\
 Alooideae, genetic diversity, in-silico, sequence alignment
 
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[frame hidden, interior hidden, borderline west={3pt}{0pt}{shadecolor}, boxrule=0pt, breakable, sharp corners, enhanced]}{\end{tcolorbox}}\fi
+
+\bookmarksetup{startatroot}
+
+\hypertarget{abstract}{%
+\chapter*{Abstract}\label{abstract}}
+
+\markboth{Abstract}{Abstract}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
 \newpage
-\thispagestyle{empty}
-{\fontsize{16pt}{20pt}\selectfont \textbf{Abstract} \par}
-
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-
-\newpage
-
-\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[interior hidden, enhanced, frame hidden, borderline west={3pt}{0pt}{shadecolor}, breakable, sharp corners, boxrule=0pt]}{\end{tcolorbox}}\fi
-
-\renewcommand*\contentsname{Table of contents}
-{
-\hypersetup{linkcolor=}
-\setcounter{tocdepth}{2}
 \tableofcontents
-}
+
 \bookmarksetup{startatroot}
 
 \hypertarget{introduction}{%
 \chapter{Introduction}\label{introduction}}
+
+Blabla
 
 \bookmarksetup{startatroot}
 
@@ -291,7 +318,7 @@ ligula gravida metus, id commodo turpis turpis nec dolor
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\textwidth,height=\textheight]{placeholder.jpg}
+{\centering \includegraphics[width=0.5\textwidth,height=\textheight]{text/placeholder.jpg}
 
 }
 
@@ -330,7 +357,7 @@ ligula gravida metus, id commodo turpis turpis nec dolor.
 
 \begin{figure}
 
-\includegraphics[width=0.5\textwidth,height=\textheight]{placeholder.jpg} \hfill{}
+\includegraphics[width=0.5\textwidth,height=\textheight]{text/placeholder.jpg} \hfill{}
 
 \caption{Example Picture on the left}
 
@@ -419,6 +446,186 @@ Mazda RX4 Wag & 21 & 6 \\
 Datsun 710 & 22.8 & 4 \\
 Hornet 4 Drive & 21.4 & 6 \\
 \end{longtable}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
+ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in
+risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus
+purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra
+gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In
+tristique risus ac finibus fringilla. Nullam vulputate enim id consequat
+faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper
+tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur,
+leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur
+est orci sed mi.
+
+Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa
+mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc
+ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat
+volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus
+dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique
+senectus et netus et malesuada fames ac turpis egestas.
 
 \bookmarksetup{startatroot}
 
@@ -534,7 +741,7 @@ ligula gravida metus, id commodo turpis turpis nec dolor
 
 \raisebox{-\height}{
 
-\includegraphics{placeholder.jpg}
+\includegraphics{text/placeholder.jpg}
 
 }
 
@@ -549,7 +756,7 @@ ligula gravida metus, id commodo turpis turpis nec dolor
 
 \raisebox{-\height}{
 
-\includegraphics{placeholder.jpg}
+\includegraphics{text/placeholder.jpg}
 
 }
 
