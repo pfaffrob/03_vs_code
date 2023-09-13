@@ -1,13 +1,58 @@
 ```{python}
-import matplotlib.pyplot as plt
-import pandas as pd
 from my_functions import *
+```
+# General Forest
+
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_fcover_2000_borneo.tif'
+output_tif ='../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000.tif'
+
+reclassify_values = {0: range(1,50),
+                     1: range(50,101)}
+
+reclassify(input_tif, output_tif, reclassify_values)
 ```
 
 
-# analysis forest loss and partially build up areas
 
-## How much forest was lost yearly? (total)
+```{python}
+## Set variables for the title and paths
+title = 'Borneo forest cover in 2000'
+input_tif = '../../07_data_prepared/deforestation/forest_cover_year_2000.tif'
+output_csv = 'results/tables/forest_cover_year_2000.csv'
+output_png = 'results/plots/forest_cover_year_2000.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+
+
+# Primary Forest
+
+```{python}
+## Set variables for the title and paths
+title = 'Primary forest in 2001'
+input_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+output_csv = 'results/tables/primary_forest_2001.csv'
+output_png = 'results/plots/primary_forest_2001.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+
+# 1 analysis forest loss
+
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Total Forest Loss 2001 - 2021'
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+output_csv = 'test.csv'
+output_png = 'test.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+## 1.1 How much forest was lost yearly? (total)
 ```{python}
 ## Set variables for the title and paths
 title = 'Borneo Total Forest Loss 2001 - 2021'
@@ -15,47 +60,11 @@ input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
 output_csv = 'results/tables/gfc_deforestation_total_yearly.csv'
 output_png = 'results/plots/borneo_total_forest_loss.png'
 
-with rasterio.open(input_tif) as src:
-    ## Get the spatial resolution (in meters) from the TIF file metadata
-    spatial_resolution = src.res[0]
-
-    ## Calculate the conversion factor from pixels to hectares
-    conversion_factor = (spatial_resolution ** 2) / 10000
-
-    band1 = src.read(1)
-    unique, counts = np.unique(band1, return_counts=True)
-    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
-    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
-    df['Year'] = df['Year'] + 2000
-    df.to_csv(output_csv, index=False)
-
-plt.style.use('bmh') ## set the style to 'bmh'
-
-df = pd.read_csv(output_csv)
-
-ax = df.plot(x='Year', y='Area (ha)', kind='bar')
-for i in ax.containers:
-    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
-
-## add the x-axis line back
-ax.spines['bottom'].set_visible(True)
-
-## remove the vertical grid lines and add horizontal grid lines
-ax.xaxis.grid(False)
-ax.yaxis.grid(True)
-
-## extend the y-axis by 15%
-y_max = df['Area (ha)'].max()
-ax.set_ylim(0, y_max * 1.15)
-
-## add a title to the plot
-ax.set_title(title)
-
-## save the plot as a .png file with extra space around the edges
-plt.savefig(output_png, bbox_inches='tight')
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
 ```
 
-## How much forest was lost yearly to forest fires?
+## 1.2 How much forest was lost yearly to forest fires?
 ```{python}
 ## Set variables for the title and paths
 title = 'Borneo Total Forest Loss (Forest Fires) 2001 - 2021'
@@ -63,48 +72,79 @@ input_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
 output_csv = 'results/tables/forest_fires_loss_total_yearly.csv'
 output_png = 'results/plots/forest_fires_loss_total_yearly.png'
 
-with rasterio.open(input_tif) as src:
-    ## Get the spatial resolution (in meters) from the TIF file metadata
-    spatial_resolution = src.res[0]
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```
 
-    ## Calculate the conversion factor from pixels to hectares
-    conversion_factor = (spatial_resolution ** 2) / 10000
+## 1.3 How much forest gain (area) occured after forest fires (2001 - 2012)?
 
-    band1 = src.read(1)
-    unique, counts = np.unique(band1, return_counts=True)
-    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
-    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
-    df['Year'] = df['Year'] + 2000
-    df.to_csv(output_csv, index=False)
+##### --> cannot be answered as there are no time stamps available for forest gain.
 
-plt.style.use('bmh') ## set the style to 'bmh'
+## 1.4 How much much forest was lost in protected areas yearly?
 
-df = pd.read_csv(output_csv)
+### 1.4.1 mask deforestation with protected areas
+```{python}
 
-ax = df.plot(x='Year', y='Area (ha)', kind='bar')
-for i in ax.containers:
-    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
+output_tif = '../../08_data_processed/combined/deforestation_protected_areas.tif'
 
-## add the x-axis line back
-ax.spines['bottom'].set_visible(True)
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+```
 
-## remove the vertical grid lines and add horizontal grid lines
-ax.xaxis.grid(False)
-ax.yaxis.grid(True)
+### 1.4.2 calculate
+```{python}
+## Set variables for the title and paths
+title = 'Forest loss in protected areas'
+input_tif = '../../08_data_processed/combined/deforestation_protected_areas.tif'
+output_csv = 'results/tables/deforestation_protected_areas_yearly.csv'
+output_png = 'results/plots/deforestation_protected_areas_yearly.png'
 
-## extend the y-axis by 15%
-y_max = df['Area (ha)'].max()
-ax.set_ylim(0, y_max * 1.15)
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```
 
-## add a title to the plot
-ax.set_title(title)
+## 1.5	How much forest was lost in protected areas excluding forest fires?
 
-## save the plot as a .png file with extra space around the edges
-plt.savefig(output_png, bbox_inches='tight')
+### 1.5.1 mask deforestation with forest fires
+
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
+output_tif = '../../08_data_processed/combined/deforestation_no_forest_fires.tif'
+mask_values = list(range(1, 22))
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = True)
+
+```
+
+### 1.5.2 mask deforestation excluding forest fires with protected areas
+```{python}
+input_tif = '../../08_data_processed/combined/deforestation_no_forest_fires.tif'
+mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
+output_tif = '../../08_data_processed/combined/deforestation_no_forest_fires_protected_areas.tif'
+
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+```
+
+### 1.5.3 calculate
+```{python}
+## Set variables for the title and paths
+title = 'Forest loss in protected areas excluding forest fires'
+input_tif = '../../08_data_processed/combined/deforestation_no_forest_fires_protected_areas.tif'
+output_csv = 'results/tables/deforestation_no_forest_fires_protected_areas_yearly.csv'
+output_png = 'results/plots/deforestation_no_forest_fires_protected_areas_yearly.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
 ```
 
 
-## mask forest loss with primary forest
+
+
+
+## 2.1 How much primary forest was lost yearly?
+### 2.1.1 mask forest loss with primary forest
 ```{python}
 input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
 mask_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
@@ -113,7 +153,7 @@ output_tif = '../../08_data_processed/deforestation/deforestation_primary_forest
 mask_tif_select_nodata(input_tif, mask_tif, output_tif)
 ```
 
-## How much primary forest was lost yearly?
+### 2.1.2 Calculate how much primary forest was lost yearly
 ```{python}
 ## Set variables for the title and paths
 title = 'Borneo Total Primary Forest Loss 2001 - 2021'
@@ -121,108 +161,544 @@ input_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.
 output_csv = 'results/tables/primary_forest_loss_total_yearly.csv'
 output_png = 'results/plots/primary_loss_total_yearly.png'
 
-with rasterio.open(input_tif) as src:
-    ## Get the spatial resolution (in meters) from the TIF file metadata
-    spatial_resolution = src.res[0]
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```
 
-    ## Calculate the conversion factor from pixels to hectares
-    conversion_factor = (spatial_resolution ** 2) / 10000
+## 2.2 How much primary forest area was lost due to forest fires yearly and in total?
 
-    band1 = src.read(1)
-    unique, counts = np.unique(band1, return_counts=True)
-    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
-    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
-    df['Year'] = df['Year'] + 2000
-    df.to_csv(output_csv, index=False)
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+output_tif = '../../08_data_processed/deforestation/primary_forest_forest_fires.tif'
 
-plt.style.use('bmh') ## set the style to 'bmh'
+mask_tif_select_nodata(input_tif, mask_tif, output_tif)
+```
 
-df = pd.read_csv(output_csv)
+### 2.2.2 calculate
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Total Primary Forest Loss to forest fires 2001 - 2021'
+input_tif = '../../08_data_processed/deforestation/primary_forest_forest_fires.tif'
+output_csv = 'results/tables/primary_forest_loss_forest_fires_total_yearly.csv'
+output_png = 'results/plots/primary_loss_forest_fires_total_yearly.png'
 
-ax = df.plot(x='Year', y='Area (ha)', kind='bar')
-for i in ax.containers:
-    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```
 
-## add the x-axis line back
-ax.spines['bottom'].set_visible(True)
+## 2.3 How much much primary forest was lost in protected areas yearly?
 
-## remove the vertical grid lines and add horizontal grid lines
-ax.xaxis.grid(False)
-ax.yaxis.grid(True)
+### 2.3.1 mask deforestation with protected areas
+```{python}
 
-## extend the y-axis by 15%
-y_max = df['Area (ha)'].max()
-ax.set_ylim(0, y_max * 1.15)
+input_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
+mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
+output_tif = '../../08_data_processed/combined/deforestation_primary_forest_protected_areas.tif'
 
-## add a title to the plot
-ax.set_title(title)
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+```
 
-## save the plot as a .png file with extra space around the edges
-plt.savefig(output_png, bbox_inches='tight')
+### 2.3.2 calculate
+```{python}
+## Set variables for the title and paths
+title = 'Primary forest loss in protected areas'
+input_tif = '../../08_data_processed/combined/deforestation_primary_forest_protected_areas.tif'
+output_csv = 'results/tables/deforestation_primary_forest_protected_areas.csv'
+output_png = 'results/plots/deforestation_primary_forest_protected_areas.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```
+
+## 2.4	How much forest was lost in protected areas excluding forest fires?
+
+### 2.4.1 mask primary deforestation with forest fires
+
+```{python}
+input_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
+output_tif = '../../08_data_processed/combined/deforestation_primary_forest_no_forest_fires.tif'
+mask_values = list(range(1, 22))
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = True)
+
+```
+
+### 2.4.2 mask deforestation excluding forest fires with protected areas
+```{python}
+input_tif = '../../08_data_processed/combined/deforestation_primary_forest_no_forest_fires.tif'
+mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
+output_tif = '../../08_data_processed/combined/deforestation_primary_forest_no_forest_fires_protected_areas.tif'
+
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+```
+
+### 2.4.3 calculate
+```{python}
+## Set variables for the title and paths
+title = 'Primary forest loss in protected areas excluding forest fires'
+input_tif = '../../08_data_processed/combined/deforestation_primary_forest_no_forest_fires_protected_areas.tif'
+output_csv = 'results/tables/deforestation_primary_forest_no_forest_fires_protected_areas.csv'
+output_png = 'results/plots/deforestation_primary_forest_no_forest_fires_protected_areas.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
 ```
 
 
-## mask forest loss with new build up areas
+
+
+
+# 3 oil palm
+
+## 3.1 How much new oil palm plantations occurred yearly (2000 - 2017)?
+
+```{python}
+## Set variables for the title and paths
+title = 'Borneo new oil palm plantations (2001 - 2017)'
+input_tif = '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif'
+output_csv = 'results/tables/new_oil_palm_detection_yearly.csv'
+output_png = 'results/plots/new_oil_palm_detection_yearly.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+## 3.2 How much new oil palm occurred on previously deforested areas? (2001 - 2017)
+
+### 3.2.1 snap raster first
 ```{python}
 
-input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+snap_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+input_tif = '../../07_data_prepared/oil_palm/LAEA_detection_year_2001_2017.tif'
+output_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2001_2017.tif'
+
+
+snap_raster(input_tif, snap_tif, output_tif)
+```
+
+
+### 3.2.2 mask
+```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2001_2017.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+output_tif = '../../08_data_processed/combined/new_oil_palm_after_deforestation.tif'
+
+mask_tif_larger_smaller_value(input_tif, mask_tif, output_tif, is_greater=True, nodata_value=0)
+```
+
+
+### 3.2.3 calculate
+
+```{python}
+title = 'new palm oil plantations after deforestation (2001-2017)'
+input_tif = '../../08_data_processed/combined/new_oil_palm_after_deforestation.tif'
+output_csv = 'results/tables/new_oil_palm_after_deforestation.csv'
+output_png = 'results/plots/new_oil_palm_after_deforestation.png'
+
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+
+## 3.3	How much new oil palm plantation area occured yearly on areas deforested by forest fires?
+
+### 3.3.1 mask
+```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2001_2017.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
+output_tif = '../../08_data_processed/combined/new_oil_palm_after_forest_fires.tif'
+
+mask_tif_larger_smaller_value(input_tif, mask_tif, output_tif, is_greater=True, nodata_value=0)
+```
+
+
+### 3.3.2 calculate
+
+```{python}
+title = 'new palm oil plantations after forest fires (2001-2017)'
+input_tif = '../../08_data_processed/combined/new_oil_palm_after_forest_fires.tif'
+output_csv = 'results/tables/new_oil_palm_after_forest_fires.csv'
+output_png = 'results/plots/new_oil_palm_after_forest_fires.png'
+
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+## 3.4	How much new oil palm plantation area occured in protected ares?
+
+### 3.4.1 mask 
+```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif'
+mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
+output_tif = '../../08_data_processed/combined/new_oil_palm_protected_areas.tif'
+
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+```
+
+### 3.4.2 calculate
+
+```{python}
+title = 'new palm oil plantations in protected areas (2001-2017)'
+input_tif = '../../08_data_processed/combined/new_oil_palm_protected_areas.tif'
+output_csv = 'results/tables/new_oil_palm_protected_areas.csv'
+output_png = 'results/plots/new_oil_palm_protected_areas.png'
+
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+
+## 3.5	How much new oil palm plantation areo occured on non-forest area? (compared to year 2000 forest cover)
+
+### 3.5.1 mask
+
+```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2001_2017.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_gfw_fcover_2000_borneo.tif'
+output_tif = '../../08_data_processed/combined/new_oil_palm_nonforest.tif'
+
+mask_values = list(range(51,101))
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=True)
+```
+
+### 3.5.2 calculate
+```{python}
+title = 'new palm oil plantations on year 2000 non foret areas  (2001-2017)'
+input_tif = '../../08_data_processed/combined/new_oil_palm_nonforest.tif'
+output_csv = 'results/tables/new_oil_palm_nonforest.csv'
+output_png = 'results/plots/new_oil_palm_nonforest.png'
+
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+
+## 3.6	How much new oil palm plantation area occured on previos cropland (and other way around)?
+
+
+
+
+```{python}
+
+
+def process_tifs(input_tif, mask_tif, output_tif):
+    with rasterio.open(input_tif) as src:
+        input_data = src.read(1)
+        input_transform = src.transform
+        input_crs = src.crs
+
+    with rasterio.open(mask_tif) as msk:
+        mask_data = msk.read(1)
+        mask_transform = msk.transform
+
+    # Calculate the scaling factors between the two rasters
+    scale_x = int(input_transform[0] / mask_transform[0])
+    scale_y = int(input_transform[4] / mask_transform[4])
+
+    # Reshape the input data to match the mask data resolution
+    input_data_rescaled = np.repeat(np.repeat(input_data, scale_y, axis=0), scale_x, axis=1)
+
+    # Calculate the percentage of pixels with value 1 in each region
+    region_sums = np.add.reduceat(np.add.reduceat(mask_data, np.arange(0, mask_data.shape[0], scale_y), axis=0),
+                                  np.arange(0, mask_data.shape[1], scale_x), axis=1)
+    
+    # Resize percentages to match the shape of input_data_rescaled
+    percentages = region_sums / (scale_x * scale_y)
+    percentages = np.resize(percentages, input_data_rescaled.shape)
+
+    # Calculate the new values for each region
+    new_values = input_data_rescaled / percentages
+
+    # Assign these values to the corresponding pixels in the output raster
+    output_data = new_values * (mask_data == 1)
+
+    # Write the output raster
+    with rasterio.open(output_tif, 'w', driver='GTiff', height=output_data.shape[0],
+                       width=output_data.shape[1], count=1, dtype=str(output_data.dtype),
+                       crs=input_crs, transform=mask_transform, compress='lzw') as dst:
+        dst.write(output_data, 1)
+
+
+```
+
+
+
+
+```{python}
+
+def adjust_geotiff_to_match_aspect_ratio(source_path, target_path, output_path):
+    # Öffnen Sie das Ausgangs-GeoTIFF, das Sie anpassen möchten
+    with rasterio.open(source_path) as src:
+        src_data = src.read()
+        src_transform = src.transform
+
+    # Öffnen Sie das Ziel-GeoTIFF, dessen Seitenverhältnis Sie verwenden möchten
+    with rasterio.open(target_path) as dst:
+        dst_data = dst.read()
+        dst_transform = dst.transform
+
+    # Berechnen Sie das Seitenverhältnis des Ziel-GeoTIFF
+    dst_width, dst_height = dst.width, dst.height
+    dst_aspect_ratio = dst_width / dst_height
+
+    # Berechnen Sie das Seitenverhältnis des Ausgangs-GeoTIFF
+    src_width, src_height = src.width, src.height
+    src_aspect_ratio = src_width / src_height
+
+    # Initialisieren Sie extra_rows und extra_cols außerhalb der Bedingungen
+    extra_rows = 0
+    extra_cols = 0
+
+    # Entscheiden Sie, wie viele Zeilen oben und unten bzw. Spalten links und rechts hinzugefügt bzw. entfernt werden müssen
+    if src_aspect_ratio > dst_aspect_ratio:
+        # Das Ausgangs-GeoTIFF ist breiter, fügen Sie Zeilen oben und unten hinzu
+        extra_rows = int((src_height - src_width / dst_aspect_ratio) / 2)
+    else:
+        # Das Ausgangs-GeoTIFF ist höher, fügen Sie Spalten links und rechts hinzu
+        extra_cols = int((src_width - src_height * dst_aspect_ratio) / 2)
+
+    # Berechnen Sie new_height und new_width
+    new_height = src_height - 2 * extra_rows
+    new_width = src_width - 2 * extra_cols
+
+    # Schneiden Sie das Ausgangs-GeoTIFF auf die neue Größe
+    src_data = src_data[:, extra_rows:extra_rows + new_height, extra_cols:extra_cols + new_width]
+
+    # Erstellen Sie ein neues GeoTIFF mit den angepassten Daten, LZW-Kompression und dem gleichen räumlichen Bezug wie das Ziel-GeoTIFF
+    with rasterio.open(output_path, 'w', driver='GTiff', height=new_height, width=new_width, count=src.count, dtype=src_data.dtype, crs=dst.crs, transform=dst_transform, compress='LZW') as dst:
+        dst.write(src_data)
+
+
+
+
+```
+
+```{python}
+
+
+
+from rasterio.enums import Resampling
+
+def rescale_raster(input_tif, target_tif, output_tif):
+    # Lese die Metadaten des Eingabe- und Ziel-TIFs
+    with rasterio.open(input_tif) as src:
+        input_meta = src.meta
+    with rasterio.open(target_tif) as tgt:
+        target_meta = tgt.meta
+
+    # Berechne die neue Höhe und Breite
+    target_height_m = target_meta['transform'][5] * target_meta['height']
+    pixel_height_m = abs(input_meta['transform'][5])
+    new_height_px = int(target_height_m / pixel_height_m)
+    new_width_px = int(new_height_px * (target_meta['width'] / target_meta['height']))
+
+    # Erstelle ein neues TIF mit der berechneten Größe
+    output_meta = input_meta.copy()
+    output_meta.update({
+        'height': new_height_px,
+        'width': new_width_px,
+        'transform': rasterio.Affine(input_meta['transform'][0], 0, target_meta['transform'][2], 0, -pixel_height_m, target_meta['transform'][5]),
+        'compress': 'lzw'
+    })
+
+    with rasterio.open(output_tif, 'w', **output_meta) as dst:
+        with rasterio.open(input_tif) as src:
+            # Skaliere das Eingabe-TIF auf die neue Größe und kopiere die Daten
+            data = src.read(
+                out_shape=(src.count, new_height_px, new_width_px),
+                resampling=Resampling.bilinear
+            )
+
+            # Setze fehlende Werte auf 0
+            data[data == src.nodata] = 0
+
+            dst.write(data)
+
+
+
+```
+
+```{python}
+input_tif= '/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif'
+process_tif = '/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/crop_type/crops_2015/LAEA/LAEA_GAEZAct2015_HarvArea_Soybean_Total.tif'
+output_tif = 'resized_cropland.tif'
+
+# Example usage:
+rescale_raster(input_tif, process_tif, output_tif)
+```
+
+```{python}
+input_tif= '../adjusted_crop_to cropland.tif'
+process_tif = '../resized_cropland.tif'
+output_tif = '../crop_restructured.tif'
+
+# Example usage:
+create_high_res_tif_from_mask(input_tif, process_tif, output_tif)
+```
+
+
+# 4 build up area
+
+## 4.0 preparations
+
+### 4.0.1 buffer total build up area
+```{python}
+
+input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+output_tif = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_build_up_area.tif'
+buffer_distances = [100,200,500,1000,2000]
+
+for buffer_distance in buffer_distances:
+    buffer_tif(input_tif, buffer_distance, output_tif.replace("bufferdistance", str(buffer_distance)))
+```
+
+### 4.0.2 buffer year 2000 build up area
+
+#### 4.0.2.1 reclassify to exclusiveley year 2000
+```{python}
+input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+output_tif ='../../07_data_prepared/infrastructure/LAEA_build_up_area_2000.tif'
+
+reclassify_values = {0: [1]}
+
+reclassify(input_tif, output_tif, reclassify_values)
+```
+
+#### 4.0.2.2 buffer
+```{python}
+input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area_2000.tif'
+output_tif = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_build_up_area_2000.tif'
+buffer_distances = [100,200,500,1000,2000]
+
+for buffer_distance in buffer_distances:
+    buffer_tif(input_tif, buffer_distance, output_tif.replace("bufferdistance", str(buffer_distance)))
+```
+
+### 4.0.3 buffer new build up area
+#### 4.0.3.1 reclassify to exclusiveley new build up area 2000-2020
+```{python}
+input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+output_tif ='../../07_data_prepared/infrastructure/LAEA_new_build_up_area_2020.tif'
+
+reclassify_values = {0: [2]}
+
+reclassify(input_tif, output_tif, reclassify_values)
+```
+
+#### 4.0.3.2 buffer
+```{python}
+input_tif = '../../07_data_prepared/infrastructure/LAEA_new_build_up_area_2020.tif'
+output_tif = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_new_build_up_area_2000.tif'
+buffer_distances = [100,200,500,1000,2000]
+
+for buffer_distance in buffer_distances:
+    buffer_tif(input_tif, buffer_distance, output_tif.replace("bufferdistance", str(buffer_distance)))
+```
+
+### 4.0.4 limit gfc data to the span of 2000 to 2020
+
+```{python}
+reclassify_values = {0: [21]}
+
+input_file = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+output_file = '../../07_data_prepared/deforestation/LAEA_gfw_2001_2020_borneo.tif'
+
+reclassify(input_file, output_file, reclassify_values)
+```
+
+
+
+## 4.1 How Much new build up area existed in 2000 and how much was build in the last 20 years?
+
+### 4.1.1 Reclassify to only 0 values
+
+```{python}
+reclassify_values = {0: [255]}
+
+input_file = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+output_file = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+
+reclassify(input_file, output_file, reclassify_values)
+```
+
+### 4.1.1 calculate
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Build up areas situation 2000 and added from 2000-2020'
+input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif
+output_csv = 'results/tables/LAEA_build_up_area.csv'
+output_png = 'results/plots/fLAEA_build_up_area.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png,  show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
+```
+
+## 4.2 How much forest loss areas occured on new build up area (yearly)?
+
+### 4.2.1 mask forest loss with new build up areas
+```{python}
+
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2001_2020_borneo.tif'
 mask_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
 output_tif = '../../08_data_processed/combined/deforestation_new_build_up_area.tif'
 
 mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
 ```
 
-## How much new build up areas was created on forest loss areas (2020 compared to 2000)?
+### 4.2.2 calculation
 ```{python}
 ## Set variables for the title and paths
-title = 'Borneo Forest Loss to build up areas 2001 - 2021'
+title = 'Borneo Forest Loss to new build up areas 2001 - 2021'
 input_tif = '../../08_data_processed/combined/deforestation_new_build_up_area.tif'
-output_csv = 'results/tables/forest_loss_build_up_areas_yearly.csv'
-output_png = 'results/plots/forest_loss_build_up_areas_yearly.png'
+output_csv = 'results/tables/forest_loss_new_build_up_areas_yearly.csv'
+output_png = 'results/plots/forest_loss_new_build_up_areas_yearly.png'
 
-with rasterio.open(input_tif) as src:
-    ## Get the spatial resolution (in meters) from the TIF file metadata
-    spatial_resolution = src.res[0]
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
 
-    ## Calculate the conversion factor from pixels to hectares
-    conversion_factor = (spatial_resolution ** 2) / 10000
+## 4.3 How much new build up area occured in non-forest covered area (2020 compared to 2000)?
 
-    band1 = src.read(1)
-    unique, counts = np.unique(band1, return_counts=True)
-    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
-    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
-    df['Year'] = df['Year'] + 2000
-    df.to_csv(output_csv, index=False)
+### 4.3.1 Mask
+```{python}
+input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_gfw_fcover_2000_borneo.tif'
+output_tif = '../../08_data_processed/combined/build_up_area_non_forest.tif'
 
-plt.style.use('bmh') ## set the style to 'bmh'
+mask_values = list(range(51,101))
 
-df = pd.read_csv(output_csv)
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=True)
+```
 
-ax = df.plot(x='Year', y='Area (ha)', kind='bar')
-for i in ax.containers:
-    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
+### 4.3.2 Reclassify to only 0 values
 
-## add the x-axis line back
-ax.spines['bottom'].set_visible(True)
+```{python}
+reclassify_values = {0: [255]}
 
-## remove the vertical grid lines and add horizontal grid lines
-ax.xaxis.grid(False)
-ax.yaxis.grid(True)
+input_file = '../../08_data_processed/combined/build_up_area_non_forest.tif'
+output_file = '../../08_data_processed/combined/build_up_area_non_forest.tif'
 
-## extend the y-axis by 15%
-y_max = df['Area (ha)'].max()
-ax.set_ylim(0, y_max * 1.15)
+reclassify(input_file, output_file, reclassify_values)
+```
 
-## add a title to the plot
-ax.set_title(title)
+### 4.3.2 calculate
+```{python}
+## Set variables for the title and paths
+title = 'Borneo new build up areas on non forest areas from 2000-2020'
+input_tif = '../../08_data_processed/combined/build_up_area_non_forest.tif'
+output_csv = 'results/tables/build_up_area_non_forest.csv'
+output_png = 'results/plots/build_up_area_non_forest.png'
 
-## save the plot as a .png file with extra space around the edges
-plt.savefig(output_png, bbox_inches='tight')
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
 ```
 
 
 
-## mask forest fire loss with new build up areas
+## 4.4 How much new build up areas was created on forest-fire loss areas (2020 compared to 2000)?
+
+### 4.4.1 mask forest fire loss with new build up areas
 ```{python}
 
 input_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
@@ -232,7 +708,7 @@ output_tif = '../../08_data_processed/combined/forest_fires_new_build_up_area.ti
 mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
 ```
 
-## How much new build up areas was created on forest-fire loss areas (2020 compared to 2000)?
+### 4.4.2 Calculation
 ```{python}
 ## Set variables for the title and paths
 title = 'Borneo Forest Loss to build up areas by forest fires 2001 - 2021'
@@ -240,190 +716,158 @@ input_tif = '../../08_data_processed/combined/forest_fires_new_build_up_area.tif
 output_csv = 'results/tables/forest_fires_new_build_up_area_yearly.csv'
 output_png = 'results/plots/forest_fires_new_build_up_area_yearly.png'
 
-with rasterio.open(input_tif) as src:
-    ## Get the spatial resolution (in meters) from the TIF file metadata
-    spatial_resolution = src.res[0]
-
-    ## Calculate the conversion factor from pixels to hectares
-    conversion_factor = (spatial_resolution ** 2) / 10000
-
-    band1 = src.read(1)
-    unique, counts = np.unique(band1, return_counts=True)
-    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
-    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
-    df['Year'] = df['Year'] + 2000
-    df.to_csv(output_csv, index=False)
-
-plt.style.use('bmh') ## set the style to 'bmh'
-
-df = pd.read_csv(output_csv)
-
-ax = df.plot(x='Year', y='Area (ha)', kind='bar')
-for i in ax.containers:
-    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
-
-## add the x-axis line back
-ax.spines['bottom'].set_visible(True)
-
-## remove the vertical grid lines and add horizontal grid lines
-ax.xaxis.grid(False)
-ax.yaxis.grid(True)
-
-## extend the y-axis by 15%
-y_max = df['Area (ha)'].max()
-ax.set_ylim(0, y_max * 1.15)
-
-## add a title to the plot
-ax.set_title(title)
-
-## save the plot as a .png file with extra space around the edges
-plt.savefig(output_png, bbox_inches='tight')
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
 ```
 
 
-## mask deforestation with protected areas
+## 4.5 How much new oil palm plantation area occured within 0.1, 0.2, 0.5, 1, and 2 km of year 2000 build up areas?
+
 ```{python}
+# Define your x and y variables as lists
+x = ['100', '200', '500', '1000', '2000']
+y = ['build_up_area_2000', 'new_build_up_area', 'build_up_area']
 
-input_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
-mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
-output_tif = '../../08_data_processed/combined/deforestation_protected_areas.tif'
+# Initialize empty lists for input, mask, and output paths
+input_tif_paths = []
+mask_tif_paths = []
+output_tif_paths = []
 
-mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+# Loop through each combination of x and y
+for x_value in x:
+    for y_value in y:
+        # Replace {x} and {y} in the paths with the actual values
+        mask_tif_path = f'../../07_data_prepared/infrastructure/LAEA_buffer_{x_value}_{y_value}.tif'
+        output_tif_path = f'../../08_data_processed/buffer_oilpalm/oil_palm_buffer_{x_value}_{y_value}.tif'
+
+        input_tif_paths.append('../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2001_2017.tif')
+        mask_tif_paths.append(mask_tif_path)
+        output_tif_paths.append(output_tif_path)
+
+        # Perform the mask_tif_select_value and process_raster_to_csv_and_plot functions here using the paths
+        mask_tif_select_value('../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2001_2017.tif', mask_tif_path, output_tif_path, mask_values=[1])
+        title = f'New oil palm within {x_value}m of {y_value}'
+        input_tif = output_tif_path
+        output_csv = f'results/tables/oil_palm_buffer_{x_value}_{y_value}.csv'
+        output_png = f'results/plots/oil_palm_buffer_{x_value}_{y_value}.png'
+        process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+
+
 ```
 
-## How much much forest was lost in protected areas yearly?
+## 4.6	How much forest fire area occured within 0.1, 0.2, 0.5, 1, and 2 km of year 2000, new_build up and total build up areas?
+
+```{python}
+# Define your x and y variables as lists
+x = ['100', '200', '500', '1000', '2000']
+y = ['build_up_area_2000', 'new_build_up_area', 'build_up_area']
+
+# Initialize empty lists for input, mask, and output paths
+input_tif_paths = []
+mask_tif_paths = []
+output_tif_paths = []
+
+# Loop through each combination of x and y
+for x_value in x:
+    for y_value in y:
+        # Replace {x} and {y} in the paths with the actual values
+        mask_tif_path = f'../../07_data_prepared/infrastructure/LAEA_buffer_{x_value}_{y_value}.tif'
+        output_tif_path = f'../../08_data_processed/buffer_forest_fires/forest_fires_buffer_{x_value}_{y_value}.tif'
+
+        input_tif_paths.append('../../07_data_prepared/deforestation/LAEA_forest_fires.tif')
+        mask_tif_paths.append(mask_tif_path)
+        output_tif_paths.append(output_tif_path)
+
+        # Perform the mask_tif_select_value and process_raster_to_csv_and_plot functions here using the paths
+        mask_tif_select_value('../../07_data_prepared/deforestation/LAEA_forest_fires.tif', mask_tif_path, output_tif_path, mask_values=[1])
+        title = f'Forest fires within {x_value}m of {y_value}'
+        input_tif = output_tif_path
+        output_csv = f'results/tables/forest_fires_buffer_{x_value}_{y_value}.csv'
+        output_png = f'results/plots/forest_fires_buffer_{x_value}_{y_value}.png'
+        process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+
+
+```
+
+
+## 4.7	How much deforestation (excluding forest fires) area occured within 0.1, 0.2, 0.5, 1, and 2 km of year 2000, new_build up and total build up areas?
+
+```{python}
+# Define your x and y variables as lists
+x = ['100', '200', '500', '1000', '2000']
+y = ['build_up_area_2000', 'new_build_up_area', 'build_up_area']
+
+# Initialize empty lists for input, mask, and output paths
+input_tif_paths = []
+mask_tif_paths = []
+output_tif_paths = []
+
+# Loop through each combination of x and y
+for x_value in x:
+    for y_value in y:
+        # Replace {x} and {y} in the paths with the actual values
+        mask_tif_path = f'../../07_data_prepared/infrastructure/LAEA_buffer_{x_value}_{y_value}.tif'
+        output_tif_path = f'../../08_data_processed/buffer_deforestation_no_forest_fires/deforestation_no_forest_fires_buffer_{x_value}_{y_value}.tif'
+
+        input_tif_paths.append('../../08_data_processed/combined/deforestation_no_forest_fires.tif')
+        mask_tif_paths.append(mask_tif_path)
+        output_tif_paths.append(output_tif_path)
+
+        # Perform the mask_tif_select_value and process_raster_to_csv_and_plot functions here using the paths
+        mask_tif_select_value('../../08_data_processed/combined/deforestation_no_forest_fires.tif', mask_tif_path, output_tif_path, mask_values=[1])
+        title = f'Deforestation excluding forest fires within {x_value}m of {y_value}'
+        input_tif = output_tif_path
+        output_csv = f'results/tables/deforestation_no_forest_fires_buffer{x_value}_{y_value}.csv'
+        output_png = f'results/plots/deforestation_no_forest_fires_buffer{x_value}_{y_value}.png'
+        process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+
+
+```
+
+# 5 RSPO
+
+
+## 5.1 in RSPO certified concessions
+
+```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
+mask_shp = '../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp'
+output_tif = '../../08_data_processed/combined/oil_palm_in_RSPO_certified_regions.tif'
+
+mask_tif_with_shapefile_select_feature_value(input_tif, mask_shp, output_tif, feature_name="RSPOCert", feature_value="Certified")
+```
+
 ```{python}
 ## Set variables for the title and paths
-title = 'Forest loss in protected areas'
-input_tif = '../../08_data_processed/combined/deforestation_protected_areas.tif'
-output_csv = 'results/tables/deforestation_protected_areas_yearly.csv'
-output_png = 'results/plots/deforestation_protected_areas_yearly.png'
+title = 'Oil palm detection year within RSPO certified concessions'
+input_tif = '../../08_data_processed/combined/oil_palm_in_RSPO_certified_regions.tif'
+output_csv = 'results/tables/oil_palm_in_RSPO_certified_regions.csv'
+output_png = 'results/plots/oil_palm_in_RSPO_certified_regions.png'
 
-with rasterio.open(input_tif) as src:
-    ## Get the spatial resolution (in meters) from the TIF file metadata
-    spatial_resolution = src.res[0]
-
-    ## Calculate the conversion factor from pixels to hectares
-    conversion_factor = (spatial_resolution ** 2) / 10000
-
-    band1 = src.read(1)
-    unique, counts = np.unique(band1, return_counts=True)
-    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
-    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
-    df['Year'] = df['Year'] + 2000
-    df.to_csv(output_csv, index=False)
-
-plt.style.use('bmh') ## set the style to 'bmh'
-
-df = pd.read_csv(output_csv)
-
-ax = df.plot(x='Year', y='Area (ha)', kind='bar')
-for i in ax.containers:
-    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
-
-## add the x-axis line back
-ax.spines['bottom'].set_visible(True)
-
-## remove the vertical grid lines and add horizontal grid lines
-ax.xaxis.grid(False)
-ax.yaxis.grid(True)
-
-## extend the y-axis by 15%
-y_max = df['Area (ha)'].max()
-ax.set_ylim(0, y_max * 1.15)
-
-## add a title to the plot
-ax.set_title(title)
-
-## save the plot as a .png file with extra space around the edges
-plt.savefig(output_png, bbox_inches='tight')
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
 ```
 
-# oil palm
 
-## yearly new oil palm plantation
+## 5.2 in RSPO uncertified concessions
+
+```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
+mask_shp = '../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp'
+output_tif = '../../08_data_processed/combined/oil_palm_in_RSPO_uncertified_regions.tif'
+
+mask_tif_with_shapefile_select_feature_value(input_tif, mask_shp, output_tif, feature_name="RSPOCert", feature_value="Uncertified")
+```
 
 ```{python}
 ## Set variables for the title and paths
-title = 'Borneo new oil palm plantations (2001 - 2017)'
-input_tif = '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif'
-output_csv = 'results/tables/new_oil_palm_detection_yearly.csv'
-output_png = 'results/plots/new_oil_palm_detection_yearly.png'
+title = 'Oil palm detection year within RSPO uncertified concessions'
+input_tif = '../../08_data_processed/combined/oil_palm_in_RSPO_uncertified_regions.tif'
+output_csv = 'results/tables/oil_palm_in_RSPO_uncertified_regions.csv'
+output_png = 'results/plots/oil_palm_in_RSPO_uncertified_regions.png'
 
-with rasterio.open(input_tif) as src:
-    ## Get the spatial resolution (in meters) from the TIF file metadata
-    spatial_resolution = src.res[0]
-
-    ## Calculate the conversion factor from pixels to hectares
-    conversion_factor = (spatial_resolution ** 2) / 10000
-
-    band1 = src.read(1)
-    unique, counts = np.unique(band1, return_counts=True)
-    data = dict(zip(unique[unique != 0], counts[unique != 0] * conversion_factor))
-    df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
-    df['Year'] = df['Year']
-    df.to_csv(output_csv, index=False)
-
-plt.style.use('bmh') ## set the style to 'bmh'
-
-df = pd.read_csv(output_csv)
-
-ax = df.plot(x='Year', y='Area (ha)', kind='bar')
-for i in ax.containers:
-    ax.bar_label(i, label_type='edge', rotation=90, padding=3, fmt=lambda x: f'{x:.0f}')
-
-## add the x-axis line back
-ax.spines['bottom'].set_visible(True)
-
-## remove the vertical grid lines and add horizontal grid lines
-ax.xaxis.grid(False)
-ax.yaxis.grid(True)
-
-## extend the y-axis by 15%
-y_max = df['Area (ha)'].max()
-ax.set_ylim(0, y_max * 1.15)
-
-## add a title to the plot
-ax.set_title(title)
-
-## save the plot as a .png file with extra space around the edges
-plt.savefig(output_png, bbox_inches='tight')
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
 ```
-
-
-######################## finished upon here!!! ###############################
-
-## mask forest loss with oil palm
-### snap raster first
-```{python}
-
-snap_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
-input_tif = '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif'
-output_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
-
-
-snap_raster(input_tif, snap_tif, output_tif)
-```
-
-
-### now mask
-```{python}
-input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
-mask_tif = '../../08_data_processed/combined/snap_oil_palm_deforestation.tif'
-output_tif = '../../08_data_processed/combined/oil_palm_deforestation.tif'
-
-mask_tif_select_nodata(input_tif, mask_tif, output_tif)
-```
-
-
-## buffer build up area
-```{python}
-
-input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
-output_tif = '../../07_data_prepared/infrastructure/LAEA_buffer_build_up_area_borneo.tif'
-buffer_distances = [500, 1000, 2000]
-
-for buffer_distance in buffer_distances:
-    buffer_tif(input_tif, buffer_distance, output_tif.replace("_buffer", "_buffer_" + str(buffer_distance) + "_output.tif"))
-```
-

@@ -1,5 +1,4 @@
 ```{python}
-import matplotlib.pyplot as plt
 import osmnx as ox
 import pyproj
 import glob
@@ -22,7 +21,15 @@ reproject_shapefile_to_wktcrs(input_shp, output_shp)
 
 ```
 
+# Total Area of Borneo
+```{python}
+gdf = gpd.read_file("../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp")
+area_in_square_meters = gdf['geometry'][0].area
 
+# Convert the area to square kilometers
+area_in_square_km = area_in_square_meters / 1e6
+print(f"Area in Square Kilometers: {area_in_square_km} km²")
+```
 
 # prepare oil palm data (state 2019)
 
@@ -81,8 +88,9 @@ merge_tif_files(reclassified_tif_files, '../../07_data_prepared/oil_palm/LAEA_oi
 ```
 
 # prepare oil palm detection data
-```{python}
+## prepare
 
+```{python}
 tif_files = ['../../06_data/vegetation/oil_palm/year_of_detection/op_extent_age_N.tif', '../../06_data/vegetation/oil_palm/year_of_detection/op_extent_age_S.tif']
 
 merge_tif_files(tif_files, '../../07_data_prepared/oil_palm/detection_year.tif')
@@ -90,38 +98,75 @@ merge_tif_files(tif_files, '../../07_data_prepared/oil_palm/detection_year.tif')
 clip_tif_to_bbox('../../07_data_prepared/oil_palm/detection_year.tif', gdf_boundary_WGS84, '../../07_data_prepared/oil_palm/detection_year.tif')
 
 change_values_outside_mask('../../07_data_prepared/oil_palm/detection_year.tif', '../../07_data_prepared/oil_palm/detection_year.tif', gdf_boundary_WGS84, 0)
+```
+
+## everything detected before 2000 is changed to value 2000, all other data is changed to mach the gfw structure
+```{python}
 
 # data information: The data values range from 0 to 37 where 0 is no data and subsequent numbers run through until 2017, the last year of our analysis. A value of 4 corresponds to the year 1984, the first year oil palm was detected and 37 corresponds to 2017. Values 1 to 3 are not present.
-# --> therefore every yea
+
 
 reclassify_values = {2000: list(range(1, 21)),
-                     2001: 21,
-                     2002: 22,
-                     2003: 23,
-                     2004: 24,
-                     2005: 25,
-                     2006: 26,
-                     2007: 27,
-                     2008: 28,
-                     2009: 29,
-                     2010: 30,
-                     2011: 31,
-                     2012: 32,
-                     2013: 33,
-                     2014: 34,
-                     2015: 35,
-                     2016: 36,
-                     2017: 37}
-reclassify('../../07_data_prepared/oil_palm/detection_year.tif', '../../07_data_prepared/oil_palm/detection_year_2000_2017.tif', reclassify_values)
+                     1: 21,
+                     2: 22,
+                     3: 23,
+                     4: 24,
+                     5: 25,
+                     6: 26,
+                     7: 27,
+                     8: 28,
+                     9: 29,
+                     10: 30,
+                     11: 31,
+                     12: 32,
+                     13: 33,
+                     14: 34,
+                     15: 35,
+                     16: 36,
+                     17: 37}
+input_tif = '../../07_data_prepared/oil_palm/detection_year.tif'
+output_tif = '../../07_data_prepared/oil_palm/detection_year_2000_2017.tif'
 
-
+reclassify(input_tif, output_tif, reclassify_values)
 
 # reproject to LAEA Borneo
 reproject_raster_to_wktcrs('../../07_data_prepared/oil_palm/detection_year_2000_2017.tif', '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif')
 
 ```
 
+## everything detected before 2001 is changed to nodata (0)
+```{python}
 
+
+reclassify_values = {0: list(range(1, 21)),
+                     1: 21,
+                     2: 22,
+                     3: 23,
+                     4: 24,
+                     5: 25,
+                     6: 26,
+                     7: 27,
+                     8: 28,
+                     9: 29,
+                     10: 30,
+                     11: 31,
+                     12: 32,
+                     13: 33,
+                     14: 34,
+                     15: 35,
+                     16: 36,
+                     17: 37}
+input_tif = '../../07_data_prepared/oil_palm/detection_year.tif'
+output_tif = '../../07_data_prepared/oil_palm/detection_year_2001_2017.tif'
+
+reclassify(input_tif, output_tif, reclassify_values)
+
+
+
+# reproject to LAEA Borneo
+reproject_raster_to_wktcrs('../../07_data_prepared/oil_palm/detection_year_2001_2017.tif', '../../07_data_prepared/oil_palm/LAEA_detection_year_2001_2017.tif')
+
+```
 
 
 # prepare global forest watch data
@@ -166,7 +211,7 @@ clip_tif_to_bbox('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo
 change_values_outside_mask('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', '../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', gdf_boundary_WGS84, 0)
 
 # reproject to epsg:23846
-reproject_raster_to_wktcrs('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', '../../07_data_prepared/deforestation/LAEA_gfw_gain_2000_2012_borneo_test.tif')
+reproject_raster_to_wktcrs('../../07_data_prepared/deforestation/gfw_gain_2000_2012_borneo.tif', '../../07_data_prepared/deforestation/LAEA_gfw_gain_2000_2012_borneo.tif')
 
 ```
 
@@ -284,6 +329,7 @@ reproject_raster_to_wktcrs(os.path.join(merge_output_dir,f'borneo_cropland_2019.
 
 ```
 
+
 ## 2000
 ```{python}
 root_folder = '../../06_data/vegetation/crops_2000/HarvestedAreaYield175Crops_Geotiff'
@@ -300,6 +346,9 @@ for tif_path in tif_files:
     output_directory = "../../07_data_prepared/crop_type/crops_2000/original_crs"
     clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
     clip_tif_to_bbox(input_file, gdf_boundary_WGS84, clipped_output_file)
+
+    # change nan values to 0
+    replace_nan_with_zero(clipped_output_file, clipped_output_file)
 
     # Change values outside the mask to 0
     input_file = clipped_output_file
@@ -332,6 +381,9 @@ for tif_path in tif_files:
     output_directory = "../../07_data_prepared/crop_type/crops_2010/original_crs"
     clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
     clip_tif_to_bbox(input_file, gdf_boundary_WGS84, clipped_output_file)
+    
+    # change nan values to 0
+    replace_nan_with_zero(clipped_output_file, clipped_output_file)
 
     # Change values outside the mask to 0
     input_file = clipped_output_file
@@ -364,6 +416,9 @@ for tif_path in tif_files:
     output_directory = "../../07_data_prepared/crop_type/crops_2015/original_crs"
     clipped_output_file = os.path.join(output_directory, file_name.replace(".tif", "_clipped.tif"))
     clip_tif_to_bbox(input_file, gdf_boundary_WGS84, clipped_output_file)
+    
+    # change nan values to 0
+    replace_nan_with_zero(clipped_output_file, clipped_output_file)
 
     # Change values outside the mask to 0
     input_file = clipped_output_file

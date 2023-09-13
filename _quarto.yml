@@ -17,6 +17,8 @@ book:
 bibliography: bibliography/BA.bib
 csl: bibliography/APA_7th.csl
 filters: [remove_title.lua]
+crossref:
+  chapters: true
 link-citations: true
 colorlinks: true
 linkcolor: black

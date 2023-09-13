@@ -1,5 +1,119 @@
 # Method
 
+For further analysis, a value of >50% tree cover was considered as forest (@hansenHighResolutionGlobalMaps2013).
+
+
+
+
+```{python}
+#| echo: false
+#| label: fig-deforestation_total
+#| fig-cap: mycaption
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df1 = pd.read_csv('../code/results/tables/gfc_deforestation_total_yearly.csv')
+df2 = pd.read_csv('../code/results/tables/forest_fires_loss_total_yearly.csv')
+
+# Rename 'Area (ha)' column in df1 to 'total'
+df1.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+# Rename 'Area (ha)' column in df2 to 'forest fires'
+df2.rename(columns={'Area (ha)': 'forest fires'}, inplace=True)
+
+# Perform a left join on 'Year'
+merged_df = pd.merge(df1, df2, on='Year', how='left')
+# Create a new column 'loss_no_forest_fires'
+merged_df['loss no forest fires'] = merged_df['total'] - merged_df['forest fires']
+for col in merged_df.columns:
+    if col != 'Year':
+        merged_df[col] = merged_df[col].apply(round_to_nearest_100)
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'forest fires' with a label
+bars1 = ax.bar(merged_df['Year'], merged_df['forest fires'], label='Forest Fires', alpha=0.7)
+
+# Bar chart for 'loss no forest fires' with a label
+bars2 = ax.bar(merged_df['Year'], merged_df['loss no forest fires'], bottom=merged_df['forest fires'], label='Loss No Forest Fires', alpha=0.7)
+
+# Set title and labels
+ax.set_title('Total Deforestation per Year', pad=30)
+ax.set_xlabel('Year')
+ax.set_ylabel('Total Deforestation (ha)')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = merged_df[['forest fires', 'loss no forest fires']].sum(axis=1).max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(merged_df['Year'], merged_df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Show the plot
+plt.legend()
+plt.show()
+
+
+```
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   @hansenHighResolutionGlobalMaps2013    |
+
+: Demonstration of pipe table syntax 1
+
+
+```{python}
+#| echo: false
+#| label: tbl-mytable5
+#| tbl-cap: mycaption
+import pandas as pd
+
+# Specify the Excel file path
+excel_file = "../../06_data/overview.xlsx"
+
+# Specify the sheet name
+sheet_name = "Tabelle1"
+
+columns_to_read = ["Title", "Year covered", "resolution", "data type"]
+
+# Specify the starting row and ending row of the range you want to read (1-based index)
+start_row = 1  # Adjust this to the first row you want to read
+end_row = 10   # Adjust this to the last row you want to read
+
+# Read the specified range of cells from the Excel file
+df = pd.read_excel(excel_file, sheet_name=sheet_name, skiprows=range(1, start_row), nrows=(end_row - start_row + 1), usecols=columns_to_read)
+
+# Now, df contains the data from the specified range of cells in the Excel file
+
+
+from IPython.display import HTML
+
+# Convert the DataFrame to an HTML table
+html_table = df.to_html(classes="table table-striped table-bordered", escape=False)
+
+# Display the HTML table
+HTML(html_table)
+
+```
+
+
 ## Data Collection
 
 ### Data Source
@@ -34,44 +148,34 @@ Markdown(table_md)
 ```
 
 
+```{python}
+#| echo: false
+#| label: tbl-mytable4
+#| tbl-cap: mycaption
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
+import pandas as pd
+from IPython.display import Markdown
+from tabulate import tabulate
 
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+# Define the data for the table
+data = [
+    ["Car1", 20, '@hansenHighResolutionGlobalMaps2013'],
+    ["Car2", 25, 6],
+    ["Car3", 30, 4],
+    ["Car4", 22, 8]
+]
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
+# Generate markdown table
+table_md = tabulate(
+    data,
+    headers=["Car", "MPG", "Cylinders"],
+    tablefmt="pipe"
+)
 
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+# Display markdown table
+Markdown(table_md)
+```
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+see [Annex I](#annex-i)
 
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec ipsum sit amet arcu blandit vulputate at sed felis. Nam auctor tortor in risus aliquet, id interdum elit vestibulum. Nulla aliquam faucibus purus, non laoreet mi sollicitudin id. Aliquam volutpat, ex eu pharetra gravida, lacus nisl dictum ipsum, ac aliquam metus urna id leo. In tristique risus ac finibus fringilla. Nullam vulputate enim id consequat faucibus. Duis pellentesque metus ac fermentum auctor. Nam semper tincidunt purus, nec volutpat mauris feugiat ut. Phasellus consectetur, leo vitae facilisis dignissim, purus justo volutpat felis, vel efficitur est orci sed mi.
-
-Phasellus a nisi lacus. Nullam congue ultrices ex, sed lacinia massa mattis sit amet. Nam fermentum, turpis ut congue viverra, nisl nunc ultricies mauris, nec consequat turpis metus eget ligula. Aliquam erat volutpat. Vivamus tempus nisl in est ultrices varius. Nunc nec purus dolor. Sed a ullamcorper ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.

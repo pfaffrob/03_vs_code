@@ -1,0 +1,1244 @@
+```{python}
+import matplotlib.pyplot as plt
+import pandas as pd
+```
+
+# General Forest
+
+```{python}
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df1 = pd.read_csv('../code/results/tables/forest_cover_year_2000.csv')
+df2 = pd.read_csv('../code/results/tables/primary_forest_2001.csv')
+
+# Rename 'Area (ha)' column in df1 to 'total'
+df1.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+# Rename 'Area (ha)' column in df2 to 'primary forest'
+df2.rename(columns={'Area (ha)': 'primary forest'}, inplace=True)
+
+# Perform a left join on 'Year'
+merged_df = pd.merge(df1, df2, on='Year', how='left')
+# Create a new column 'loss_no_forest_fires'
+merged_df['primary forest'] = merged_df['total'] - merged_df['primary forest']
+for col in merged_df.columns:
+    if col != 'Year':
+        merged_df[col] = merged_df[col].apply(round_to_nearest_100)
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+bars1 = ax.bar(merged_df['Year'], merged_df['primary forest'], label='Primary forest (2001)', alpha=0.7)
+
+# Bar chart for 'primary forest' with a label
+bars2 = ax.bar(merged_df['Year'], merged_df['primary forest'], bottom=merged_df['primary forest'], label='Non primary forest (2000)', alpha=0.7)
+
+# Remove x-axis labels and its name
+ax.set_xlabel('')
+plt.xticks([])
+
+# Set y-axis title to 'Forest (ha)'
+ax.set_ylabel('Forest (ha)')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = merged_df[['primary forest', 'primary forest']].sum(axis=1).max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(merged_df['Year'], merged_df['total']):
+    ax.text(year, total + y_max*-0.35, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=0)
+
+# Calculate the sum of the 'total' column
+total_sum = merged_df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(merged_df['Year'].min(), y_max * 1.2, f'Total Forest Loss 2001 - 2021: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/forest_2000.png', dpi=300)
+
+```
+
+# 1.1 / 1.2 Forest Loss Reasons
+
+```{python}
+
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df1 = pd.read_csv('../code/results/tables/gfc_deforestation_total_yearly.csv')
+df2 = pd.read_csv('../code/results/tables/forest_fires_loss_total_yearly.csv')
+
+# Rename 'Area (ha)' column in df1 to 'total'
+df1.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+# Rename 'Area (ha)' column in df2 to 'forest fires'
+df2.rename(columns={'Area (ha)': 'forest fires'}, inplace=True)
+
+# Perform a left join on 'Year'
+merged_df = pd.merge(df1, df2, on='Year', how='left')
+# Create a new column 'loss_no_forest_fires'
+merged_df['loss no forest fires'] = merged_df['total'] - merged_df['forest fires']
+for col in merged_df.columns:
+    if col != 'Year':
+        merged_df[col] = merged_df[col].apply(round_to_nearest_100)
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+bars1 = ax.bar(merged_df['Year'], merged_df['forest fires'], label='Forest Fires', alpha=0.7)
+
+# Bar chart for 'loss no forest fires' with a label
+bars2 = ax.bar(merged_df['Year'], merged_df['loss no forest fires'], bottom=merged_df['forest fires'], label='Loss No Forest Fires', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('Total Deforestation (ha)')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = merged_df[['forest fires', 'loss no forest fires']].sum(axis=1).max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(merged_df['Year'], merged_df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = merged_df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(merged_df['Year'].min(), y_max * 1.2, f'Total Forest Loss 2001 - 2021: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/total_deforestation.png', dpi=300)
+
+
+```
+
+# 1.4/1.5 Protected Areas
+
+```{python}
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df1 = pd.read_csv('../code/results/tables/deforestation_protected_areas_yearly.csv')
+df2 = pd.read_csv('../code/results/tables/deforestation_no_forest_fires_protected_areas_yearly.csv')
+
+# Rename 'Area (ha)' column in df1 to 'total'
+df1.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+# Rename 'Area (ha)' column in df2 to 'primary forest'
+df2.rename(columns={'Area (ha)': 'loss no forest fires'}, inplace=True)
+
+# Perform a left join on 'Year'
+merged_df = pd.merge(df1, df2, on='Year', how='left')
+# Create a new column 'loss_no_forest_fires'
+merged_df['forest fires'] = merged_df['total'] - merged_df['loss no forest fires']
+for col in merged_df.columns:
+    if col != 'Year':
+        merged_df[col] = merged_df[col].apply(round_to_nearest_100)
+merged_df['Year'] = merged_df['Year'] + 2000
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+bars1 = ax.bar(merged_df['Year'], merged_df['forest fires'], label='Forest Fires', alpha=0.7)
+
+# Bar chart for 'loss no forest fires' with a label
+bars2 = ax.bar(merged_df['Year'], merged_df['loss no forest fires'], bottom=merged_df['forest fires'], label='Loss No Forest Fires', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('Total Deforestation (ha)')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = merged_df[['forest fires', 'loss no forest fires']].sum(axis=1).max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(merged_df['Year'], merged_df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = merged_df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(merged_df['Year'].min(), y_max * 1.2, f'Protected areas total forest loss 2001 - 2021: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/deforestation_protected_areas.png', dpi=300)
+
+```
+
+
+# 2.1 / 2.2
+
+
+```{python}
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df1 = pd.read_csv('../code/results/tables/primary_forest_loss_total_yearly.csv')
+df2 = pd.read_csv('../code/results/tables/primary_forest_loss_forest_fires_total_yearly.csv')
+
+# Rename 'Area (ha)' column in df1 to 'total'
+df1.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+# Rename 'Area (ha)' column in df2 to 'forest fires'
+df2.rename(columns={'Area (ha)': 'forest fires'}, inplace=True)
+
+# Perform a left join on 'Year'
+merged_df = pd.merge(df1, df2, on='Year', how='left')
+# Create a new column 'loss_no_forest_fires'
+merged_df['loss no forest fires'] = merged_df['total'] - merged_df['forest fires']
+for col in merged_df.columns:
+    if col != 'Year':
+        merged_df[col] = merged_df[col].apply(round_to_nearest_100)
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+bars1 = ax.bar(merged_df['Year'], merged_df['forest fires'], label='Forest Fires', alpha=0.7)
+
+# Bar chart for 'loss no forest fires' with a label
+bars2 = ax.bar(merged_df['Year'], merged_df['loss no forest fires'], bottom=merged_df['forest fires'], label='Loss No Forest Fires', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('Total Deforestation (ha)')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = merged_df[['forest fires', 'loss no forest fires']].sum(axis=1).max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(merged_df['Year'], merged_df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = merged_df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(merged_df['Year'].min(), y_max * 1.2, f'Total primary Forest Loss 2001 - 2021: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/total_primary_forest_deforestation.png', dpi=300)
+
+```
+
+# 2.3/2.4 Primary Forest Protected Areas
+
+```{python}
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df1 = pd.read_csv('../code/results/tables/deforestation_primary_forest_protected_areas.csv')
+df2 = pd.read_csv('../code/results/tables/deforestation_primary_forest_no_forest_fires_protected_areas.csv')
+
+# Rename 'Area (ha)' column in df1 to 'total'
+df1.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+# Rename 'Area (ha)' column in df2 to 'primary forest'
+df2.rename(columns={'Area (ha)': 'loss no forest fires'}, inplace=True)
+
+# Perform a left join on 'Year'
+merged_df = pd.merge(df1, df2, on='Year', how='left')
+# Create a new column 'loss_no_forest_fires'
+merged_df['forest fires'] = merged_df['total'] - merged_df['loss no forest fires']
+for col in merged_df.columns:
+    if col != 'Year':
+        merged_df[col] = merged_df[col].apply(round_to_nearest_100)
+merged_df['Year'] = merged_df['Year'] + 2000
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+bars1 = ax.bar(merged_df['Year'], merged_df['forest fires'], label='Forest Fires', alpha=0.7)
+
+# Bar chart for 'loss no forest fires' with a label
+bars2 = ax.bar(merged_df['Year'], merged_df['loss no forest fires'], bottom=merged_df['forest fires'], label='Loss No Forest Fires', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('Total Deforestation (ha)')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = merged_df[['forest fires', 'loss no forest fires']].sum(axis=1).max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(merged_df['Year'], merged_df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = merged_df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(merged_df['Year'].min(), y_max * 1.2, f'Total primary forest loss in protected Areas 2001 - 2021: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/deforestation_primary_forest_protected_areas.png', dpi=300)
+
+```
+
+# 3.1 new oil palm
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/new_oil_palm_detection_yearly.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total new oil palm plantation 2001 - 2017: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/new_oil_palm_plantations.png', dpi=300)
+
+```
+
+# 3.2 new oil palm after deforestation
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/new_oil_palm_after_deforestation.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations after deforestetion', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total new oil palm plantation after deforestation 2001 - 2017: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/new_oil_palm_after_deforestation.png', dpi=300)
+
+```
+
+# 3.3 new oil palm after forest fires
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/new_oil_palm_after_forest_fires.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].astype(int)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations after forest fires', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total new oil palm plantation after forest fires 2001 - 2017: {total_sum} ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/new_oil_palm_after_forest_fires.png', dpi=300)
+
+```
+
+# 3.4 new oil palm protected areas
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/new_oil_palm_protected_areas.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].astype(int)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations in protected areas', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total new oil palm plantation in protected areas 2001 - 2017: {total_sum} ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/new_oil_palm_protected_areas.png', dpi=300)
+
+```
+
+# 3.5 new oil palm on nonforest area
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/new_oil_palm_nonforest.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations on nonforest area', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total new oil palm plantation on nonforest area (year 2000): {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/new_oil_palm_nonforest.png', dpi=300)
+
+```
+
+# 4.1 build up areas
+
+```{python}
+
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/LAEA_build_up_area.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int)
+# Assuming 'df' is your DataFrame
+df.loc[0, 'Year'] = 'build up 2001 - 2020'
+df.loc[1, 'Year'] = 'build up 2000'
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='build up area', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total build up area 2020: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/build_up_area.png', dpi=300)
+
+```
+
+
+# 4.2 forest loss new build up areas
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/forest_loss_new_build_up_areas_yearly.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+
+df['total'] = merged_df['total'].apply(round_to_nearest_100)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='Forest loss on new build up areas', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total forest loss on new build up areas 2001 - 2020: {total_sum} ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/forest_loss_new_build_up_areas_yearly.png', dpi=300)
+
+```
+
+# 4.3 build_up_area_non_forest
+
+```{python}
+
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/build_up_area_non_forest.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int)
+# Assuming 'df' is your DataFrame
+df.loc[0, 'Year'] = 'build up 2001 - 2020'
+df.loc[1, 'Year'] = 'build up 2000'
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='build up area on nonforest area', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total build up area on nonforest area 2020: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/build_up_area_non_forest.png', dpi=300)
+
+```
+
+# 4.4 forest fires on new build up area
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/forest_fires_new_build_up_area_yearly.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='Forest fire on new build up area', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total forest fire on new build up area (2001 - 2020): {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/forest_fires_new_build_up_area_yearly.png', dpi=300)
+
+```
+
+# Erstellen einer funktion für Bufferdiagramme
+
+```{python}
+import pandas as pd
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+
+def plot_buffer(files, title1, title2, output1, output2):
+    new_column_names = [100, 200, 500, 1000, 2000]
+
+    df = pd.read_csv(files[0])
+    df.columns.values[1] = new_column_names[0]
+
+    for file, column_name in zip(files[1:], new_column_names[1:]):
+        other_df = pd.read_csv(file)
+        other_df.columns.values[1] = column_name
+        df = pd.merge(df, other_df, on='Year', how='left')
+
+    for column in df.columns:
+        if column != 'Year':
+            df[column] = np.round(df[column], -2).astype(int)
+
+    df.set_index('Year', inplace=True)
+
+    ax = df.plot(kind='bar', stacked=False, figsize=(12, 6), colormap='cividis_r', width=0.75)
+
+    plt.title(title1)
+    plt.xlabel('Year')
+    plt.ylabel('Area (ha)')
+
+    formatter = mticker.ScalarFormatter()
+    formatter.set_scientific(False)
+    ax.yaxis.set_major_formatter(formatter)
+
+    legend = ax.legend()
+    legend.set_title("Buffer in m")
+
+    # Save the first plot before displaying it
+    plt.savefig(output1, dpi=300, bbox_inches='tight')
+
+    df_sum = df.sum().to_frame().T
+
+    ax_sum = df_sum.plot(kind='bar', stacked=False, figsize=(6, 6), colormap='cividis_r', width=0.75)
+
+    plt.title(title2)
+    plt.ylabel('Area (ha)')
+
+    formatter = mticker.ScalarFormatter()
+    formatter.set_scientific(False)
+    ax_sum.yaxis.set_major_formatter(formatter)
+
+    legend = ax_sum.legend()
+    legend.set_title("Buffer in m")
+
+    ax_sum.set_xticklabels([])
+
+    # Save the second plot before displaying it
+    plt.savefig(output2, dpi=300, bbox_inches='tight')
+
+    # Display both plots after saving
+    plt.show()
+
+
+```
+
+# 4.5 oil palm buffer
+
+## 4.5.1 build up area
+```{python}
+files = files = ['results/tables/oil_palm_buffer_100_build_up_area.csv',
+         'results/tables/oil_palm_buffer_200_build_up_area.csv',
+         'results/tables/oil_palm_buffer_500_build_up_area.csv',
+         'results/tables/oil_palm_buffer_1000_build_up_area.csv',
+         'results/tables/oil_palm_buffer_2000_build_up_area.csv']
+title1 = 'Oil palm plantations within different buffer distances from total build up area'
+title2 = 'Sum of oil palm plantations within different buffer distances from total build up area'
+output1 = 'results/final_plots/buffer_oil_palm_build_up_area_yearly.png'
+output2 = 'results/final_plots/buffer_oil_palm_build_up_area_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+## 4.5.2 new build up area
+```{python}
+files = files = ['results/tables/oil_palm_buffer_100_new_build_up_area.csv',
+         'results/tables/oil_palm_buffer_200_new_build_up_area.csv',
+         'results/tables/oil_palm_buffer_500_new_build_up_area.csv',
+         'results/tables/oil_palm_buffer_1000_new_build_up_area.csv',
+         'results/tables/oil_palm_buffer_2000_new_build_up_area.csv']
+title1 = 'Oil palm within different buffer distances from new build up area'
+title2 = 'Sum of oil palm within different buffer distances new total build up area'
+output1 = 'results/final_plots/buffer_oil_palm_new_build_up_area_yearly.png'
+output2 = 'results/final_plots/buffer_oil_palm_new_build_up_area_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+## 4.5.3 build up area (2000)
+```{python}
+files = files = ['results/tables/oil_palm_buffer_100_build_up_area_2000.csv',
+         'results/tables/oil_palm_buffer_200_build_up_area_2000.csv',
+         'results/tables/oil_palm_buffer_500_build_up_area_2000.csv',
+         'results/tables/oil_palm_buffer_1000_build_up_area_2000.csv',
+         'results/tables/oil_palm_buffer_2000_build_up_area_2000.csv']
+title1 = 'Oil palm within different buffer distances from build up area (2000)'
+title2 = 'Sum of oil palm within different buffer distances total build up area (2000)'
+output1 = 'results/final_plots/buffer_oil_palm_build_up_area_2000_yearly.png'
+output2 = 'results/final_plots/buffer_oil_palm_build_up_area_2000_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+
+# 4.6 forest fire buffer 
+## 4.6.1 build up area
+```{python}
+files = files = ['results/tables/forest_fires_buffer_100_build_up_area.csv',
+         'results/tables/forest_fires_buffer_200_build_up_area.csv',
+         'results/tables/forest_fires_buffer_500_build_up_area.csv',
+         'results/tables/forest_fires_buffer_1000_build_up_area.csv',
+         'results/tables/forest_fires_buffer_2000_build_up_area.csv']
+title1 = 'Forest fires within different buffer distances from total build up area'
+title2 = 'Sum of forest fire within different buffer distances from total build up area'
+output1 = 'results/final_plots/buffer_forest_fires_build_up_area_yearly.png'
+output2 = 'results/final_plots/buffer_forest_fires_build_up_area_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+## 4.6.2 new build up area
+```{python}
+files = files = ['results/tables/forest_fires_buffer_100_new_build_up_area.csv',
+         'results/tables/forest_fires_buffer_200_new_build_up_area.csv',
+         'results/tables/forest_fires_buffer_500_new_build_up_area.csv',
+         'results/tables/forest_fires_buffer_1000_new_build_up_area.csv',
+         'results/tables/forest_fires_buffer_2000_new_build_up_area.csv']
+title1 = 'Forest fire within different buffer distances from new build up area'
+title2 = 'Sum of forest fire within different buffer distances new total build up area'
+output1 = 'results/final_plots/buffer_forest_fires_new_build_up_area_yearly.png'
+output2 = 'results/final_plots/buffer_forest_fires_new_build_up_area_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+## 4.6.3 build up area (2000)
+```{python}
+files = files = ['results/tables/forest_fires_buffer_100_build_up_area_2000.csv',
+         'results/tables/forest_fires_buffer_200_build_up_area_2000.csv',
+         'results/tables/forest_fires_buffer_500_build_up_area_2000.csv',
+         'results/tables/forest_fires_buffer_1000_build_up_area_2000.csv',
+         'results/tables/forest_fires_buffer_2000_build_up_area_2000.csv']
+title1 = 'Forest fire within different buffer distances from build up area (2000)'
+title2 = 'Sum of forest fire within different buffer distances total build up area (2000)'
+output1 = 'results/final_plots/buffer_forest_fires_build_up_area_2000_yearly.png'
+output2 = 'results/final_plots/buffer_forest_fires_build_up_area_2000_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+
+# 4.7 no forest fire deforestation buffer
+## 4.7.1 build up area
+```{python}
+files = files = ['results/tables/deforestation_no_forest_fires_buffer100_build_up_area.csv',
+         'results/tables/deforestation_no_forest_fires_buffer200_build_up_area.csv',
+         'results/tables/deforestation_no_forest_fires_buffer500_build_up_area.csv',
+         'results/tables/deforestation_no_forest_fires_buffer1000_build_up_area.csv',
+         'results/tables/deforestation_no_forest_fires_buffer2000_build_up_area.csv']
+title1 = 'Deforestation (excluding forest fires) within different buffer distances from total build up area'
+title2 = 'Sum of deforestation (excluding forest fires) within different buffer distances from total build up area'
+output1 = 'results/final_plots/buffer_no_forest_fires_build_up_area_yearly.png'
+output2 = 'results/final_plots/buffer_no_forest_fires_build_up_area_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+## 4.7.2 new build up area
+```{python}
+files = files = ['results/tables/deforestation_no_forest_fires_buffer100_new_build_up_area.csv',
+         'results/tables/deforestation_no_forest_fires_buffer200_new_build_up_area.csv',
+         'results/tables/deforestation_no_forest_fires_buffer500_new_build_up_area.csv',
+         'results/tables/deforestation_no_forest_fires_buffer1000_new_build_up_area.csv',
+         'results/tables/deforestation_no_forest_fires_buffer2000_new_build_up_area.csv']
+title1 = 'Deforestation (excluding forest fires) within different buffer distances from new build up area'
+title2 = 'Sum of deforestation (excluding forest fires) within different buffer distances new total build up area'
+output1 = 'results/final_plots/buffer_no_forest_fires_new_build_up_area_yearly.png'
+output2 = 'results/final_plots/buffer_no_forest_fires_new_build_up_area_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+## 4.7.3 build up area (2000)
+```{python}
+files = files = ['results/tables/deforestation_no_forest_fires_buffer100_build_up_area_2000.csv',
+         'results/tables/deforestation_no_forest_fires_buffer200_build_up_area_2000.csv',
+         'results/tables/deforestation_no_forest_fires_buffer500_build_up_area_2000.csv',
+         'results/tables/deforestation_no_forest_fires_buffer1000_build_up_area_2000.csv',
+         'results/tables/deforestation_no_forest_fires_buffer2000_build_up_area_2000.csv']
+title1 = 'Deforestation (excluding forest fires) within different buffer distances from build up area (2000)'
+title2 = 'Sum of deforestation (excluding forest fires) within different buffer distances total build up area (2000)'
+output1 = 'results/final_plots/buffer_no_forest_fires_build_up_area_2000_yearly.png'
+output2 = 'results/final_plots/buffer_no_forest_fires_build_up_area_2000_total.png'
+
+
+plot_buffer(files, title1, title2, output1, output2)
+```
+
+# 5.1 RSPO certified concessions
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/oil_palm_in_RSPO_certified_regions.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations in RSPO certified concessions', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total new palm oil plantations in RSPO certified concessions: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/oil_palm_in_RSPO_certified_regions.png', dpi=300)
+```
+
+# 5.2 RSPO uncertified concessions
+
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 100) * 100
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/oil_palm_in_RSPO_uncertified_regions.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int)
+
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Bar chart for 'total' with a label
+bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations in RSPO uncertified concessions', alpha=0.7)
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('hectares')
+
+# Adjust spines and grid
+ax.spines['bottom'].set_visible(True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Add total labels for each year
+for year, total in zip(df['Year'], df['total']):
+    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add the sum of the 'total' column to the plot
+ax.text(df['Year'].min(), y_max * 1.2, f'Total new palm oil plantations in RSPO uncertified concessions: {round(total_sum/1000000, 2)} mio ha', ha='left', va='center')
+
+# Turn off scientific notation
+ax.ticklabel_format(style='plain')
+
+# Set x-axis labels to integers
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+# Show the plot
+plt.legend()
+plt.show()
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/oil_palm_in_RSPO_uncertified_regions.png', dpi=300)
+```

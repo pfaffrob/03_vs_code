@@ -1,0 +1,40 @@
+```{python}
+from my_functions import *
+```
+
+
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_gain_2000_2012_borneo.tif'
+mask_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
+output_tif = '../../08_data_processed/combined/gfw_gain_no_oil_palm_2000_2012.tif'
+mask_values = list(range(2001, 2013))
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = True)
+
+
+```
+
+
+
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Totel Forest gain 2001 - 2012'
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_gain_2000_2012_borneo.tif'
+output_csv = 'results/tables/gfw_gain_2000_2012_borneo.csv'
+output_png = 'results/plots/gfw_gain_2000_2012_borneo.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```
+
+
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Totel Forest gain (excluding new oil palm) 2001 - 2012'
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_gain_no_oil_palm_2000_2012.tif'
+output_csv = 'results/tables/gfw_gain_no_oil_palm_2000_2012.csv'
+output_png = 'results/plots/gfw_gain_no_oil_palm_2000_2012.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```

@@ -4,6 +4,11 @@
             "language": "quarto",
             "scheme": "file",
             "pattern": "walkthrough.qmd"
+        },
+        {
+            "language": "quarto",
+            "scheme": "file",
+            "pattern": "text/07_discussion.qmd"
         }
     ]
 }
