@@ -18,17 +18,6 @@ body {
     display: inline-block !important;
     height: 10px !important;
     width: 20px !important;
-    background-color: #ff0000 !important;
+    background-color: #e0ec98  !important;
     vertical-align: left !important;
   }
-
-  .square {
-    height: 50px;
-    width: 50px;
-    background-color: #478b45 ;
-  }
-
-  .legendClass rect {
-    fill: #66ff66;
-    stroke: black;
-}
