@@ -374,168 +374,266 @@ process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_su
 
 ## 3.6	How much new oil palm plantation area occured on previos cropland (and other way around)?
 
-
+### 3.6.1 Find most important 10 crops (most area) for the coresponding year. (removed rest of crops and oil palm)
 
 
 ```{python}
+spam_names = [
+    "WHEA",
+    "RICE",
+    "MAIZ",
+    "BARL",
+    "MILL",
+    "SORG",
+    "POTA",
+    "CASS",
+    "SOYB",
+    "OPUL",
+    "SUGB",
+    "COTT",
+    "GROU",
+    "OOIL",
+    "COFF",
+    "RCOF",
+    "BANP",
+    "BANA",
+    "VEGE"
+]
+
+# Define the root folders and the number of top rows for each year
+years = ['2000', '2005', '2010']
+root_folders = ["../../07_data_prepared/crop_type/crops_2000/LAEA",
+                "../../07_data_prepared/crop_type/crops_2005/LAEA",
+                "../../07_data_prepared/crop_type/crops_2010/LAEA"]
+num_top_rows = 9  # Change this to the number of top rows you want
+
+# Create a dictionary to store the data
+data = {}
+
+# Loop through the years and root folders
+for year, root_folder in zip(years, root_folders):
+    top_rows, total_top_sum = get_top_sum_tif_paths(root_folder, num_top_rows)
+    data[f'{year} paths'] = top_rows['File'].tolist()
+    data[f'{year} sums'] = top_rows['Summed_Value'].tolist()
+
+# Find the maximum length of the lists in the dictionary
+max_len = max(len(lst) for lst in data.values())
+
+# Extend all lists in the dictionary to be of length 'max_len'
+for key, value in data.items():
+    data[key] = value + [None] * (max_len - len(value))
+
+# Create the DataFrame
+df = pd.DataFrame(data)
+
+# Now, df contains the data with integer values in string format (without decimal points)
+df.to_csv('../../07_data_prepared/crop_type/top_crops.csv', index=False)
 
 
-def process_tifs(input_tif, mask_tif, output_tif):
+```
+
+```{python}
+# Load the CSV file into a DataFrame
+df = pd.read_csv('../../07_data_prepared/crop_type/top_crops.csv')
+
+# Access just one column
+top_crops_2000 = df['2000 paths'].dropna().tolist()
+
+top_crops_2005 = df['2005 paths'].dropna().tolist()
+
+top_crops_2010 = df['2010 paths'].dropna().tolist()
+```
+
+```{python}
+# cropland 1999-2003
+path_cropland_2003 = "../../07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif"
+
+for path in top_crops_2000:
+    output_path = path.replace('07_data_prepared/crop_type/crops_2000/LAEA', '08_data_processed/cropland/2000')
+    resample_and_process(path, path_cropland_2003, output_path)
+    convert_to_float32(output_path, output_path, multiply_factor = 10000)
+
+path_cropland_2007 = "../../07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif"
+for path in top_crops_2005:
+    output_path = path.replace('07_data_prepared/crop_type/crops_2005/LAEA', '08_data_processed/cropland/2005')
+    resample_and_process(path, path_cropland_2007, output_path)
+    convert_to_float32(output_path, output_path, multiply_factor = 10000)
+
+path_cropland_2011 = "../../07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif"
+for path in top_crops_2010:
+    output_path = path.replace('07_data_prepared/crop_type/crops_2010/LAEA', '08_data_processed/cropland/2010')
+    resample_and_process(path, path_cropland_2011, output_path)
+    convert_to_float32(output_path, output_path, multiply_factor = 10000)
+```
+
+
+```{python}
+years = ['2000', '2005', '2010']
+
+for year in years:
+    folder_path = f'../../08_data_processed/cropland/{year}'  # replace with your folder path
+    globals()[f'tif_files_{year}'] = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f)) and f.endswith('.tif')]
+
+
+
+ref_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+
+
+for path in tif_files_2000:
+    input_tif = path
+    output_tif = path.replace('.tif', '_snap_gfw.tif')
+    resample_different_extent(input_tif, ref_tif, output_tif)
+
+for path in tif_files_2005:
+    input_tif = path
+    output_tif = path.replace('.tif', '_snap_gfw.tif')
+    resample_different_extent(input_tif, ref_tif, output_tif)
+
+for path in tif_files_2010:
+    input_tif = path
+    output_tif = path.replace('.tif', '_snap_gfw.tif')
+    resample_different_extent(input_tif, ref_tif, output_tif)
+
+```
+
+
+```{python}
+import rasterio
+import numpy as np
+
+
+def mask_with_multiple(mask_files, input_tif, output_tif):
+    # Open the input GeoTIFF file
     with rasterio.open(input_tif) as src:
+        # Read the data into a numpy array
         input_data = src.read(1)
-        input_transform = src.transform
-        input_crs = src.crs
 
-    with rasterio.open(mask_tif) as msk:
-        mask_data = msk.read(1)
-        mask_transform = msk.transform
+        # Create an array for the mask data
+        mask_data = np.zeros(input_data.shape, dtype=bool)
 
-    # Calculate the scaling factors between the two rasters
-    scale_x = int(input_transform[0] / mask_transform[0])
-    scale_y = int(input_transform[4] / mask_transform[4])
+        # Process each mask GeoTIFF file
+        for mask_file in mask_files:
+            with rasterio.open(mask_file) as mask_src:
+                # Read the mask data into a numpy array
+                mask_data |= (mask_src.read(1) == 1)
 
-    # Reshape the input data to match the mask data resolution
-    input_data_rescaled = np.repeat(np.repeat(input_data, scale_y, axis=0), scale_x, axis=1)
+        # Define the metadata for the output GeoTIFF file
+        out_meta = src.meta.copy()
+        out_meta.update({
+            'dtype': 'uint16',
+            'compress': 'lzw',
+            'nodata': 0,
+        })
 
-    # Calculate the percentage of pixels with value 1 in each region
-    region_sums = np.add.reduceat(np.add.reduceat(mask_data, np.arange(0, mask_data.shape[0], scale_y), axis=0),
-                                  np.arange(0, mask_data.shape[1], scale_x), axis=1)
-    
-    # Resize percentages to match the shape of input_data_rescaled
-    percentages = region_sums / (scale_x * scale_y)
-    percentages = np.resize(percentages, input_data_rescaled.shape)
-
-    # Calculate the new values for each region
-    new_values = input_data_rescaled / percentages
-
-    # Assign these values to the corresponding pixels in the output raster
-    output_data = new_values * (mask_data == 1)
-
-    # Write the output raster
-    with rasterio.open(output_tif, 'w', driver='GTiff', height=output_data.shape[0],
-                       width=output_data.shape[1], count=1, dtype=str(output_data.dtype),
-                       crs=input_crs, transform=mask_transform, compress='lzw') as dst:
-        dst.write(output_data, 1)
+        # Write the output data to the output GeoTIFF file
+        with rasterio.open(output_tif, 'w', **out_meta) as dest:
+            dest.write((input_data * mask_data).astype(rasterio.uint16), 1)
 
 
 ```
 
 
+```{python}
+mask_tifs = ['/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif']
 
+input_tif = '/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
+
+output_tif = '../../08_data_processed/cropland/test.tif'
+
+mask_with_multiple(mask_tifs, input_tif, output_tif)
+```
 
 ```{python}
 
-def adjust_geotiff_to_match_aspect_ratio(source_path, target_path, output_path):
-    # Öffnen Sie das Ausgangs-GeoTIFF, das Sie anpassen möchten
-    with rasterio.open(source_path) as src:
-        src_data = src.read()
-        src_transform = src.transform
+## Set variables for the title and paths
+title = 'Oil palm on cropland'
+input_tif = '../../08_data_processed/cropland/test.tif'
+output_csv = 'results/tables/oil_palm_croplands.csv'
+output_png = 'results/plots/oil_palm_croplands.png'
 
-    # Öffnen Sie das Ziel-GeoTIFF, dessen Seitenverhältnis Sie verwenden möchten
-    with rasterio.open(target_path) as dst:
-        dst_data = dst.read()
-        dst_transform = dst.transform
-
-    # Berechnen Sie das Seitenverhältnis des Ziel-GeoTIFF
-    dst_width, dst_height = dst.width, dst.height
-    dst_aspect_ratio = dst_width / dst_height
-
-    # Berechnen Sie das Seitenverhältnis des Ausgangs-GeoTIFF
-    src_width, src_height = src.width, src.height
-    src_aspect_ratio = src_width / src_height
-
-    # Initialisieren Sie extra_rows und extra_cols außerhalb der Bedingungen
-    extra_rows = 0
-    extra_cols = 0
-
-    # Entscheiden Sie, wie viele Zeilen oben und unten bzw. Spalten links und rechts hinzugefügt bzw. entfernt werden müssen
-    if src_aspect_ratio > dst_aspect_ratio:
-        # Das Ausgangs-GeoTIFF ist breiter, fügen Sie Zeilen oben und unten hinzu
-        extra_rows = int((src_height - src_width / dst_aspect_ratio) / 2)
-    else:
-        # Das Ausgangs-GeoTIFF ist höher, fügen Sie Spalten links und rechts hinzu
-        extra_cols = int((src_width - src_height * dst_aspect_ratio) / 2)
-
-    # Berechnen Sie new_height und new_width
-    new_height = src_height - 2 * extra_rows
-    new_width = src_width - 2 * extra_cols
-
-    # Schneiden Sie das Ausgangs-GeoTIFF auf die neue Größe
-    src_data = src_data[:, extra_rows:extra_rows + new_height, extra_cols:extra_cols + new_width]
-
-    # Erstellen Sie ein neues GeoTIFF mit den angepassten Daten, LZW-Kompression und dem gleichen räumlichen Bezug wie das Ziel-GeoTIFF
-    with rasterio.open(output_path, 'w', driver='GTiff', height=new_height, width=new_width, count=src.count, dtype=src_data.dtype, crs=dst.crs, transform=dst_transform, compress='LZW') as dst:
-        dst.write(src_data)
-
-
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
 
 
 ```
 
 ```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
+mask_tif = '../../08_data_processed/cropland/cropland_03_07_11_15.tif'
+output_tif = '../../08_data_processed/cropland/test.tif'
 
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
+```
 
+```{python}
+tif_files = ['/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif']
 
-from rasterio.enums import Resampling
+output_file = '../../08_data_processed/cropland/cropland_03_07_11_15.tif'
 
-def rescale_raster(input_tif, target_tif, output_tif):
-    # Lese die Metadaten des Eingabe- und Ziel-TIFs
-    with rasterio.open(input_tif) as src:
-        input_meta = src.meta
-    with rasterio.open(target_tif) as tgt:
-        target_meta = tgt.meta
+merge_tif_files(tif_files, output_file)
+```
 
-    # Berechne die neue Höhe und Breite
-    target_height_m = target_meta['transform'][5] * target_meta['height']
-    pixel_height_m = abs(input_meta['transform'][5])
-    new_height_px = int(target_height_m / pixel_height_m)
-    new_width_px = int(new_height_px * (target_meta['width'] / target_meta['height']))
+```{python}
+import rasterio
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
-    # Erstelle ein neues TIF mit der berechneten Größe
-    output_meta = input_meta.copy()
-    output_meta.update({
-        'height': new_height_px,
-        'width': new_width_px,
-        'transform': rasterio.Affine(input_meta['transform'][0], 0, target_meta['transform'][2], 0, -pixel_height_m, target_meta['transform'][5]),
-        'compress': 'lzw'
-    })
-
-    with rasterio.open(output_tif, 'w', **output_meta) as dst:
+def process_rasters_to_csv_and_plot(title, input_tifs, output_csv, output_png):
+    data = {}
+    for input_tif in input_tifs:
         with rasterio.open(input_tif) as src:
-            # Skaliere das Eingabe-TIF auf die neue Größe und kopiere die Daten
-            data = src.read(
-                out_shape=(src.count, new_height_px, new_width_px),
-                resampling=Resampling.bilinear
-            )
+            spatial_resolution = src.res[0]
+            conversion_factor = (spatial_resolution ** 2) / 10000
 
-            # Setze fehlende Werte auf 0
-            data[data == src.nodata] = 0
+            band1 = src.read(1)
+            counts = np.count_nonzero(band1 == 1)
 
-            dst.write(data)
+            data[input_tif] = counts * conversion_factor
 
+    df = pd.DataFrame(list(data.items()), columns=['File', 'Area (ha)'])
+    df.to_csv(output_csv, index=False)
+
+    plt.style.use('bmh')
+    df = pd.read_csv(output_csv)
+
+    ax = df.plot(x='File', y='Area (ha)', kind='bar', title=title)
+    
+    # Add labels to the bars
+    for i, v in enumerate(df['Area (ha)']):
+        ax.text(i, v + 0.01, str(round(v, 2)), ha='center', rotation=90)
+
+
+    ax.spines['bottom'].set_visible(True)
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(True)
+
+    y_max = df['Area (ha)'].max()
+    ax.set_ylim(0, y_max * 1.15)
+
+    plt.savefig(output_png, bbox_inches='tight')
 
 
 ```
 
 ```{python}
-input_tif= '/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif'
-process_tif = '/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/crop_type/crops_2015/LAEA/LAEA_GAEZAct2015_HarvArea_Soybean_Total.tif'
-output_tif = 'resized_cropland.tif'
+input_tifs = ['/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2019.tif']
 
-# Example usage:
-rescale_raster(input_tif, process_tif, output_tif)
+output_csv = 'results/tables/croplands.csv'
+output_png = 'results/plots/croplands.png'
+title = 'croplland extent'
+process_multiple_rasters_to_csv_and_plot(title, input_tifs, output_csv, output_png)
 ```
-
-```{python}
-input_tif= '../adjusted_crop_to cropland.tif'
-process_tif = '../resized_cropland.tif'
-output_tif = '../crop_restructured.tif'
-
-# Example usage:
-create_high_res_tif_from_mask(input_tif, process_tif, output_tif)
-```
-
-
 # 4 build up area
 
 ## 4.0 preparations

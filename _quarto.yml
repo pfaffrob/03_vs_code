@@ -13,7 +13,6 @@ book:
     - text/06_results.qmd
     - text/07_discussion.qmd
     - text/08_annex.qmd
-
 bibliography: bibliography/BA.bib
 csl: bibliography/APA_7th.csl
 filters: [remove_title.lua]
@@ -26,13 +25,14 @@ header-includes:
   - \usepackage{fontspec}
   - \setmainfont{Arial}
   - \setsansfont{Arial}
-  - \usepackage{xcolor}
   - \usepackage{anyfontsize}
   - \fontsize{11}{16}\selectfont
   - \usepackage{booktabs}
   - \usepackage{graphicx}
   - \usepackage[nottoc]{tocbibind}
   - \usepackage{natbib}
+  - \PassOptionsToPackage{table}{xcolor}
+  - \usepackage{xcolor}
   - \renewcommand{\bibsection}{}
   - \usepackage[a4paper, top=2.5cm, bottom=3cm, left=2.5cm, right=2.5cm]{geometry}
   - \usepackage{tocloft}
@@ -44,6 +44,14 @@ header-includes:
   - \patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
   - \makeatother
 
+nocite: |
+  @unep-wcmcProtectedAreaProfile2023
+  @hansenHighResolutionGlobalMaps2013
+  @tyukavinaGlobalTrendsForest2022
+  @turubanovaOngoingPrimaryForest2018
+  @danyloMapExtentYear2021
+  @potapovGlobalMapsCropland2021
+  @potapovGlobal20002020Land2022
 format:
   pdf:
     documentclass: scrreprt

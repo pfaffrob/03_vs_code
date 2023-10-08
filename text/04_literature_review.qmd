@@ -1,5 +1,5 @@
 # Literature review
-## RSPO
+
 
 
 ## Deforestation
@@ -11,7 +11,12 @@
 ## State of the art analysis
 
 
-## Oil palm _(Elaeis guineensis)_
+## Oil palm _(Elaeis guineensis)_ [@kamyabElaeisGuineensis2022]
+
+Originating from West Africa, the oil palm _(Elaeis guineensis)_ is the most efficient and important oil-producing crop worldwide. It has the highest yield in tropical climates with high rainfall, hence it is successfully cultivated in Malaysia and Indonesia. These two countries produce 85% of the world's palm oil. Between 10 and 35 tons of fresh fruit bunch (FFB) are harvested on one hectare. Oil extraction rates (OER) have stagnated between 19 - 21% over the past 40 years [@changEconomicPerspectiveOil2003; @chewImprovingSustainabilityPalm2021]. While the massive expansion of production capacities is associated with economic growth and rapid development, the ecological impact of giant oil palm monocultures and the environmental pollution caused by large quantities of by-products during oil extraction pose major problems.
+Palm oil is used in a
+
+## RSPO [@abdulmajidSustainablePalmOil2021]
 
 
 
@@ -19,34 +24,5 @@
 
 
 
-```{python}
-#| echo: false
-#| label: tbl-mytable2
-#| tbl-cap: mycaption
-
-import pandas as pd
-from IPython.display import Markdown
-from tabulate import tabulate
-
-# Load the mtcars dataset from the CSV file
-df = pd.read_csv("mtcars.csv")
-
-# Select columns for the table
-table = df[["model", "mpg", "cyl"]].head(4).values.tolist()
-
-# Generate markdown table
-table_md = tabulate(
-    table,
-    headers=["Car", "MPG", "Cylinders"],
-    tablefmt="pipe"
-)
-
-# Display markdown table
-Markdown(table_md)
-
-```
-
-
-![Example Picture 2](placeholder.jpg){ width=50% align="center" }
 
 (@chapmanCompoundingImpactDeforestation2020; @descalsHighresolutionGlobalMap2021).

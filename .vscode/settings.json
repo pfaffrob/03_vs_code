@@ -9,6 +9,21 @@
             "language": "quarto",
             "scheme": "file",
             "pattern": "text/07_discussion.qmd"
+        },
+        {
+            "language": "quarto",
+            "scheme": "file",
+            "pattern": "text/03_introduction.qmd"
+        },
+        {
+            "language": "quarto",
+            "scheme": "file",
+            "pattern": "text/04_literature_review.qmd"
+        },
+        {
+            "language": "quarto",
+            "scheme": "file",
+            "pattern": "text/05_method.qmd"
         }
     ]
 }

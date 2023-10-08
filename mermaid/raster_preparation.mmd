@@ -1,0 +1,33 @@
+stateDiagram
+    direction LR
+    A1: input geotif 1
+    A2: input geotif 2
+    A3: input geotif ...
+    C: merge
+    D: clip to bbox
+    E: change values outside mask
+    F: reclassify
+    G: output tif
+    H: <center>reproject\n<small><sub>Lambert Azimuthal Equal Area</sub></small></center>
+    I: LAEA output tif
+    A1 --> C
+    A2 --> C
+    A3 --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+
+class A1 file
+class A2 file
+class A3 file
+class C process
+class D process
+class E process
+class F process
+class G file
+class H process
+class I file
+

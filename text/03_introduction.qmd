@@ -1,2 +1,27 @@
-# Introduction
+# Introduction {#sec-introduction}
 
+Borneo, the third largest island in the world, is home to large tropical forests and peatlands. They have a vital ecological and climatic role on a global scale and are of great socioeconomic value on a national and regional level [@harrisonTropicalForestPeatland2020]. With an estimated 10,000 to 15,000 species of flowering plants, 37 endemic bird and 44 endemic mammal species [@mackinnonEcologyKalimantan1997], Borneo is part of the Sundaland biodiversity hotspot [@myersBiodiversityHotspotsConservation2000]. However, this vast flora and fauna is threatened by land use change, climate change and fire with the IUCN listing 415 species as threatened [@harrisonTropicalForestPeatland2020]. Among them is the humans closest relative, the critically endangered borneo orangutan [_Pongo pygmaeus_; @iucnPongoPygmaeusAncrenaz2016]. In addition to biodiversity loss, these factors also have profound consequences at the regional and global levels. Among them are restrained water quality and quantity regulation services and greenhouse gases [GHGs @foleySolutionsCultivatedPlanet2011]. Because of these far-reaching consequences, measures to halt, protect, or even reverse tropical deforestation have received increased attention. This, for example, through incorporating regulatory standards, corporate voluntary sustainability commitments, protected area networks, economic incentives, and demand-side interventions [@austinWhatCausesDeforestation2019].
+
+Vegetable oil producing crops such as canola, soybean, sunflower, and oil palm occupy ~7.5% of the world's agricultural land with a total annual production of 217 Mt [2020 - 2022 @oecdOECDFAOAgriculturalOutlook2023]. This demand is expected to increase to 310 Mt by mid-century [@byerleeTropicalOilCrop2016], due to the increasing world population and as a renewable resource for biofuel [@abdulmajidSustainablePalmOil2021]. With a share of approximately one-third, palm oil is the most widely used vegetable oil [@kamyabElaeisGuineensis2022; @oecdOECDFAOAgriculturalOutlook2023]. The island of Borneo, which is shared between the two largest palm oil producers in the world - Malaysia and Indonesia produce 85% of the world's palm oil - is a cultivation hotspot due to its tropical climate and high rainfalls [@kamyabElaeisGuineensis2022].
+
+
+
+Although many recent global datasets provide the basis for analyzing the key drivers of deforestation, the most recent study examining this for Borneo was conducted a decade ago [@gaveauFourDecadesForest2014]. Considering the global importance of this region, this paper aims to fill this gap.
+
+Building on open source geodata, this thesis investigates deforestation and its drivers. The spatial extent is the island of Borneo, and its temporal scope spans the past two decades. More precise, the following questions are addressed: (i) what is the yearly extent of deforestation, (ii) which influence did the introduction of the Roundtable for Sustainable Palm Oil (RSPO) have on deforestation rates, (iii) how much existing cropland was converted into oil palm plantations and (iv) how does proximity to infrastructure impact deforestation rates?  Annex ii provides a list of the in-depth questions that help to answer these guiding questions. 
+
+
+```{mermaid, fig.cap="Your Diagram Title", fig.alt="Alternative text for your diagram", #fig:your-label}
+stateDiagram
+    direction LR
+    [*] --> A
+    A --> B
+    B --> C
+    state B {
+      direction LR
+      a --> b
+    }
+    B --> D
+```
+
+Please see Figure \@ref(fig:your-label) for the state diagram.

@@ -1,0 +1,34 @@
+/* custom-mermaid.css */
+body {
+    font-family: Arial, sans-serif;
+  }
+
+.file > rect {
+    fill: #e0ec98 !important; /* Lighter Mustard Yellow */
+    stroke: #94a400 !important; /* Darker Green */
+    color: #000000 !important; /* Black */
+}
+.process > rect {
+    fill: #aaec96 !important; /* Medium Aquamarine */
+    stroke: #478b45 !important; /* Darker Aquamarine */
+    color: #000000 !important; /* Black */
+}
+
+.rectangle {
+    display: inline-block !important;
+    height: 10px !important;
+    width: 20px !important;
+    background-color: #ff0000 !important;
+    vertical-align: left !important;
+  }
+
+  .square {
+    height: 50px;
+    width: 50px;
+    background-color: #478b45 ;
+  }
+
+  .legendClass rect {
+    fill: #66ff66;
+    stroke: black;
+}

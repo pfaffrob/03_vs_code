@@ -1,74 +1,35 @@
-# Method
+# Method {#sec-method}
 
-For further analysis, a value of >50% tree cover was considered as forest (@hansenHighResolutionGlobalMaps2013).
+## Data acquisition and selection
 
+Initially, databases such as Web of Knowledge or Google Scholar were searched for GIS and remote sensing studies covering Borneo, Southeast Asia or even a global extent. QGIS (Version 3.30) was used for initial data exploration. This led to the manual selection of data shown in @fig-data_overview for further analysis. Hereafter, the datasets are referred to by the names specified in the Content column. The research area included the landmass of Borneo, explicitly excluding the smaller surrounding islands. This delineation was obtained through the OSMnx python package (), which accesses the Open Street Maps (OSM) database [@boeingOSMnxPythonPackage2017].
 
+![Example Picture 2](05_method_files/data_overview.pdf){#fig-data_overview}
 
+## Data preparation
 
-```{python}
-#| echo: false
-#| label: fig-deforestation_total
-#| fig-cap: mycaption
-import pandas as pd
-import matplotlib.pyplot as plt
+All datasets, which existed in several segments, were merged to cover at least the extent of Borneo.  
 
-def round_to_nearest_100(n):
-    return round(n / 100) * 100
-
-# Load the data from the CSV file
-df1 = pd.read_csv('../code/results/tables/gfc_deforestation_total_yearly.csv')
-df2 = pd.read_csv('../code/results/tables/forest_fires_loss_total_yearly.csv')
-
-# Rename 'Area (ha)' column in df1 to 'total'
-df1.rename(columns={'Area (ha)': 'total'}, inplace=True)
-
-# Rename 'Area (ha)' column in df2 to 'forest fires'
-df2.rename(columns={'Area (ha)': 'forest fires'}, inplace=True)
-
-# Perform a left join on 'Year'
-merged_df = pd.merge(df1, df2, on='Year', how='left')
-# Create a new column 'loss_no_forest_fires'
-merged_df['loss no forest fires'] = merged_df['total'] - merged_df['forest fires']
-for col in merged_df.columns:
-    if col != 'Year':
-        merged_df[col] = merged_df[col].apply(round_to_nearest_100)
-
-# Create a figure and axis
-fig, ax = plt.subplots()
-
-# Bar chart for 'forest fires' with a label
-bars1 = ax.bar(merged_df['Year'], merged_df['forest fires'], label='Forest Fires', alpha=0.7)
-
-# Bar chart for 'loss no forest fires' with a label
-bars2 = ax.bar(merged_df['Year'], merged_df['loss no forest fires'], bottom=merged_df['forest fires'], label='Loss No Forest Fires', alpha=0.7)
-
-# Set title and labels
-ax.set_title('Total Deforestation per Year', pad=30)
-ax.set_xlabel('Year')
-ax.set_ylabel('Total Deforestation (ha)')
-
-# Adjust spines and grid
-ax.spines['bottom'].set_visible(True)
-ax.xaxis.grid(False)
-ax.yaxis.grid(True)
-
-# Adjust y-axis limit
-y_max = merged_df[['forest fires', 'loss no forest fires']].sum(axis=1).max()
-ax.set_ylim(0, y_max * 1.15)
-
-# Add total labels for each year
-for year, total in zip(merged_df['Year'], merged_df['total']):
-    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
-
-# Turn off scientific notation
-ax.ticklabel_format(style='plain')
-
-# Show the plot
-plt.legend()
-plt.show()
+![Flowchart](../mermaid/raster_preparation.pdf){#fig-mermaid}
 
 
-```
+
+
+
+
+## Data processing 
+For further analysis, a value of >50% tree cover was considered as forest [@hansenHighResolutionGlobalMaps2013].
+
+
+
+Aggregated plants and perennial woody plants such as coconut and oil palm were manually removed from subsequent analysis due to the cropland definition in the used dataset [@potapovGlobalMapsCropland2021], as well as crops with a total physical harvest area lower than 10000 ha within the project extent in any of the three datasets.
+
+Please see @fig-data_overview for the table.
+
+
+
+@fig-mermaid
+
 
 | Default | Left | Right | Center |
 |---------|:-----|------:|:------:|
@@ -79,103 +40,8 @@ plt.show()
 : Demonstration of pipe table syntax 1
 
 
-```{python}
-#| echo: false
-#| label: tbl-mytable5
-#| tbl-cap: mycaption
-import pandas as pd
-
-# Specify the Excel file path
-excel_file = "../../06_data/overview.xlsx"
-
-# Specify the sheet name
-sheet_name = "Tabelle1"
-
-columns_to_read = ["Title", "Year covered", "resolution", "data type"]
-
-# Specify the starting row and ending row of the range you want to read (1-based index)
-start_row = 1  # Adjust this to the first row you want to read
-end_row = 10   # Adjust this to the last row you want to read
-
-# Read the specified range of cells from the Excel file
-df = pd.read_excel(excel_file, sheet_name=sheet_name, skiprows=range(1, start_row), nrows=(end_row - start_row + 1), usecols=columns_to_read)
-
-# Now, df contains the data from the specified range of cells in the Excel file
-
-
-from IPython.display import HTML
-
-# Convert the DataFrame to an HTML table
-html_table = df.to_html(classes="table table-striped table-bordered", escape=False)
-
-# Display the HTML table
-HTML(html_table)
-
-```
 
 
 ## Data Collection
 
 ### Data Source
-
-The data used in this analysis was obtained from the `mtcars.csv` file. This file contains data on various car models, including their miles per gallon (mpg), number of cylinders, horsepower, and other characteristics. (see @tbl-mytable3)
-
-```{python}
-#| echo: false
-#| label: tbl-mytable3
-#| tbl-cap: mycaption
-
-import pandas as pd
-from IPython.display import Markdown
-from tabulate import tabulate
-
-# Load the mtcars dataset from the CSV file
-df = pd.read_csv("mtcars.csv")
-
-# Select columns for the table
-table = df[["model", "mpg", "cyl"]].head(4).values.tolist()
-
-# Generate markdown table
-table_md = tabulate(
-    table,
-    headers=["Car", "MPG", "Cylinders"],
-    tablefmt="pipe"
-)
-
-# Display markdown table
-Markdown(table_md)
-
-```
-
-
-```{python}
-#| echo: false
-#| label: tbl-mytable4
-#| tbl-cap: mycaption
-
-import pandas as pd
-from IPython.display import Markdown
-from tabulate import tabulate
-
-# Define the data for the table
-data = [
-    ["Car1", 20, '@hansenHighResolutionGlobalMaps2013'],
-    ["Car2", 25, 6],
-    ["Car3", 30, 4],
-    ["Car4", 22, 8]
-]
-
-# Generate markdown table
-table_md = tabulate(
-    data,
-    headers=["Car", "MPG", "Cylinders"],
-    tablefmt="pipe"
-)
-
-# Display markdown table
-Markdown(table_md)
-```
-
-see [Annex I](#annex-i)
-
-

@@ -1,0 +1,22 @@
+stateDiagram
+    direction LR
+    A: input geotif
+    B: buffer
+    C: output files
+    C: <center>output buffer 100m <br> output buffer 200m <br> output buffer 500m <br> output buffer 1000m <br> output buffer 2000m 
+    D: input tif
+    E: snap raster
+    F: mask
+    G: output files
+    G: <center>output buffer 100m <br> output buffer 200m <br> output buffer 500m <br> output buffer 1000m <br> output buffer 2000m 
+
+    A --> B
+    D --> E
+    D --> F
+    B --> C
+    C --> E
+    E --> F
+    F --> G
+
+    class A,C,D,G file
+    class B,E,F,L process

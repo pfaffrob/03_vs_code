@@ -268,10 +268,10 @@ def reclassify(input_file, output_file, reclassify_values):
             
 def replace_nan_with_zero(input_file, output_file):
     with rasterio.open(input_file) as src:
-        img = src.read(1)  # read the first band
+        img = src.read(1, masked=True)  # read the first band with masking
 
-        # Replace NaN values with 0
-        img = np.where(np.isnan(img), 0, img)
+        # Replace NaN and nodata values with 0
+        img = np.where(img.mask, 0, img.filled(0))
 
         # Define the profile for the output file
         profile = src.profile
@@ -283,7 +283,7 @@ def replace_nan_with_zero(input_file, output_file):
 
         # Write the output file
         with rasterio.open(output_file, 'w', **profile) as dst:
-            dst.write(img.astype(rasterio.float32), 1)     
+            dst.write(img.astype(rasterio.float32), 1)    
             
                             
 def mask_tif_select_nodata(input_tif, mask_tif, output_tif, nodata_value=[0]):
@@ -310,6 +310,63 @@ def mask_tif_select_nodata(input_tif, mask_tif, output_tif, nodata_value=[0]):
             with rasterio.open(output_tif, "w", **out_meta) as dest:
                 dest.write(out_image)
                 
+ 
+def change_sub_zero_to_zero(input_tif_path, output_tif_path):
+    try:
+        # Open the input GeoTIFF
+        with rasterio.open(input_tif_path) as src:
+            # Read the raster data (assuming a single-band raster)
+            raster = src.read(1)
+            
+            # Replace values below 0 with 0
+            modified_raster = np.maximum(raster, 0)
+            
+            # Create a copy of the source dataset with the modified data
+            with rasterio.open(
+                output_tif_path,
+                'w',
+                driver='GTiff',
+                height=src.height,
+                width=src.width,
+                count=src.count,
+                dtype=src.dtypes[0],
+                crs=src.crs,
+                transform=src.transform,
+                compress='lzw'  # Use LZW compression
+            ) as dst:
+                dst.write(modified_raster, 1)
+    
+    except Exception as e:
+        print(f"Error: {e}")
+
+def multiply_values_in_geotiff(input_tif_path, output_tif_path, multiplier):
+    try:
+        # Open the input GeoTIFF
+        with rasterio.open(input_tif_path) as src:
+            # Read the raster data (assuming a single-band raster)
+            raster = src.read(1)
+            
+            # Multiply the values by the specified multiplier
+            modified_raster = raster * multiplier
+            
+            # Create a copy of the source dataset with the modified data
+            with rasterio.open(
+                output_tif_path,
+                'w',
+                driver='GTiff',
+                height=src.height,
+                width=src.width,
+                count=src.count,
+                dtype=src.dtypes[0],
+                crs=src.crs,
+                transform=src.transform,
+                compress = 'lzw'
+            ) as dst:
+                dst.write(modified_raster, 1)
+        
+    
+    except Exception as e:
+        print(f"Error: {e}") 
                 
 def mask_tif_with_shapefile(input_tif, shapefile, output_tif, nodata_value=None):
     with rasterio.open(input_tif) as src:
@@ -486,6 +543,18 @@ def find_tif_files_with_polygon(root_folder, gdf_boundary, keyword, minimum_area
     return tif_files
 
 
+def calculate_sum_within_geotiff(tif_path):
+    total_sum = 0
+    
+    with rasterio.open(tif_path) as src:
+        raster = src.read(1)  # Read the raster data (assuming a single-band raster)
+        total_sum = raster.sum()
+    
+    return total_sum
+
+
+
+
 def create_high_res_tif_from_mask(input_tif, mask_tif, output_tif):
     with rasterio.open(input_tif) as src:
         input_data = src.read(1)
@@ -523,6 +592,195 @@ def create_high_res_tif_from_mask(input_tif, mask_tif, output_tif):
                        crs=input_crs, transform=mask_transform, compress='lzw') as dst:
         dst.write(output_data, 1)
 
+def resample_different_extent(high_res_tif_path, low_res_tif_path, output_tif_path):
+    # Open the low-resolution GeoTIFF
+    with rasterio.open(low_res_tif_path) as low_res_src:
+        low_res_data = low_res_src.read()
+        low_res_profile = low_res_src.profile
+
+        # Get the extent and resolution of the low-resolution GeoTIFF
+        extent = low_res_src.bounds
+        resolution = low_res_src.res
+
+        # Open the high-resolution GeoTIFF
+        with rasterio.open(high_res_tif_path) as high_res_src:
+            # Read the high-resolution data
+            high_res_data = high_res_src.read()
+
+            # Resample the high-resolution data to match the extent and resolution
+            # of the low-resolution GeoTIFF
+            resampled_data = np.empty(low_res_data.shape, dtype=high_res_data.dtype)
+            rasterio.warp.reproject(
+                source=high_res_data,
+                destination=resampled_data,
+                src_transform=high_res_src.transform,
+                src_crs=high_res_src.crs,
+                dst_transform=low_res_src.transform,
+                dst_crs=low_res_src.crs,
+                resampling=Resampling.nearest  # You can choose a different resampling method if needed
+            )
+
+            # Update the profile for the output GeoTIFF
+            low_res_profile.update(
+                width=low_res_data.shape[2],
+                height=low_res_data.shape[1],
+                transform=low_res_src.transform,
+                dtype=resampled_data.dtype,
+                compress="lzw"
+            )
+
+            # Write the resampled data to the output GeoTIFF
+            with rasterio.open(output_tif_path, 'w', **low_res_profile) as dst:
+                dst.write(resampled_data)
+
+
+def resample_geotiff(input_path_low_res, input_path_high_res, output_path):
+    # Open the high-resolution GeoTIFF to get its extent and resolution
+    with rasterio.open(input_path_high_res) as high_res_ds:
+        high_res_data = high_res_ds.read()
+        high_res_extent = high_res_ds.bounds
+        high_res_resolution = high_res_ds.res
+
+    with rasterio.open(input_path_low_res) as low_res_ds:
+        low_res_extent = low_res_ds.bounds
+        low_res_resolution = low_res_ds.res
+
+    # Calculate the target resolution based on the low-resolution and high-resolution resolutions
+    target_resolution = low_res_resolution[0] / (np.ceil(low_res_resolution[0] / high_res_resolution[0]))
+
+    # Create an empty array with the same shape as the low-resolution GeoTIFF but with the target resolution
+    data = np.empty(shape=(low_res_ds.count,
+                           int(low_res_ds.height * low_res_resolution[0] / target_resolution),
+                           int(low_res_ds.width * low_res_resolution[1] / target_resolution)),
+                    dtype=np.float32)
+
+    # Reproject the high-resolution data to match the low-resolution data
+    reproject(
+        source=high_res_data,
+        destination=data,
+        src_transform=high_res_ds.transform,
+        src_crs=high_res_ds.crs,
+        dst_transform=low_res_ds.transform * low_res_ds.transform.scale(
+            (low_res_ds.width / data.shape[-1]),
+            (low_res_ds.height / data.shape[-2])
+        ),
+        dst_crs=low_res_ds.crs,
+        resampling=Resampling.nearest
+    )
+
+    # Update the transform of the output dataset to reflect the new resolution
+    out_transform = rasterio.Affine(target_resolution, 0, low_res_ds.bounds.left, 0, -target_resolution, low_res_ds.bounds.top)
+
+    # Write the reprojected data to the output path
+    with rasterio.open(output_path, 'w', driver='GTiff', height=data.shape[1], width=data.shape[2], count=data.shape[0],
+                       dtype=str(data.dtype), crs=low_res_ds.crs, transform=out_transform, compress='lzw') as dest:
+        dest.write(data)
+
+def process_tifs(input_tif, mask_tif, output_path):
+    with rasterio.open(input_tif) as src:
+        input_data = src.read(1)
+        input_transform = src.transform
+        input_crs = src.crs
+
+    with rasterio.open(mask_tif) as msk:
+        mask_data = msk.read(1)
+        mask_transform = msk.transform
+
+    # Calculate the scaling factors between the two rasters
+    scale_x = int(input_transform[0] / mask_transform[0])
+    scale_y = int(input_transform[4] / mask_transform[4])
+
+    # Calculate the area of each output pixel in square meters
+    mask_x, mask_y = get_pixel_size(mask_tif)
+    pixel_area = mask_x*mask_y/10000
+
+    # Reshape the input data to match the mask data resolution
+    input_data_rescaled = np.repeat(np.repeat(input_data, scale_y, axis=0), scale_x, axis=1)
+
+    # Calculate the percentage of pixels with value 1 in each region
+    region_sums = np.add.reduceat(np.add.reduceat(mask_data, np.arange(0, mask_data.shape[0], scale_y), axis=0),
+                                  np.arange(0, mask_data.shape[1], scale_x), axis=1)
+    percentages = region_sums / (scale_x * scale_y)
+
+    # Calculate the new values for each region
+    new_values = np.nan_to_num(input_data/((scale_x * scale_y)* percentages))
+
+    # Only insert the pixel area if the new value is larger
+    new_values_with_area = np.where(new_values > pixel_area, pixel_area, new_values)
+
+    # Assign these values to the corresponding pixels in the output raster
+    output_data = new_values_with_area.repeat(scale_y, axis=0).repeat(scale_x, axis=1) * (mask_data == 1)
+
+    # Write the output raster
+    with rasterio.open(output_path, 'w', driver='GTiff', height=output_data.shape[0],
+                       width=output_data.shape[1], count=1, dtype=str(output_data.dtype),
+                       crs=input_crs, transform=mask_transform, compress='lzw') as dst:
+        dst.write(output_data, 1)
+
+
+def resample_and_process(input_path_low_res, input_path_high_res, output_path):
+    resample_geotiff(input_path_low_res, input_path_high_res, output_path)
+    process_tifs(input_path_low_res, output_path, output_path)
+
+
+def convert_data_type(file_path, output_file, data_type = np.int8, multiply_factor = 1):
+    with rasterio.open(file_path) as src:
+        # Read the raster data into a 2D array
+        data = src.read(1)
+        
+        # Multiply every pixel value by multiply_factor and change the data type
+        data = (data * multiply_factor).astype(data_type)
+        
+        # Update the metadata to reflect the new data type and compression method
+        meta = src.meta
+        meta.update(dtype=data_type, compress='lzw')
+
+        # Write the result to a new file
+        with rasterio.open(output_file, 'w', **meta) as dst:
+            dst.write(data, 1)
+
+
+def calculate_sum_within_geotiff(tif_path):
+    total_sum = 0
+    
+    with rasterio.open(tif_path) as src:
+        raster = src.read(1)  # Read the raster data (assuming a single-band raster)
+        total_sum = np.round(raster.sum()).astype(int)  # Round and convert to integer
+    
+    return total_sum
+
+def get_top_sum_tif_paths(root_folder, num_top_rows):
+    tif_files = [file for file in os.listdir(root_folder) if file.endswith('.tif')]
+    data = {'File': [], 'Summed_Value': []}
+    
+    for tif_file in tif_files:
+        for spam_name in spam_names:
+            if spam_name in tif_file:
+                tif_path = os.path.join(root_folder, tif_file)
+                total_sum = calculate_sum_within_geotiff(tif_path)
+                
+                data['File'].append(tif_path)
+                data['Summed_Value'].append(total_sum)
+                break  # Exit the loop if a match is found
+    
+    df = pd.DataFrame(data)
+    
+    # Sort the DataFrame by 'Summed_Value' in descending order
+    df = df.sort_values(by='Summed_Value', ascending=False)
+    
+    # Get the top 'num_top_rows' rows
+    top_rows = df.head(num_top_rows)
+    
+    # Replace non-finite values (NaN or inf) with a default value (e.g., 0)
+    summed_values = top_rows['Summed_Value'].fillna(0)
+    
+    # Cast the values to integers and then convert to string to remove decimal points
+    top_rows['Summed_Value'] = summed_values.astype(int).astype(str)
+    
+    # Calculate the total sum of 'Summed_Value' in the top rows
+    total_top_sum = top_rows['Summed_Value'].astype(int).sum()
+    
+    return top_rows, total_top_sum
 
 
 def process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, included_values=None, show_sum=False):

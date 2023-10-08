@@ -8,13 +8,14 @@
 \listoftables
 
 
-# Annex {.unnumbered}
-## Annex \textsc{I} {#annex-i .unnumbered .unlisted}
+# Annex {.unnumbered .unlisted}
+
+## \textsc{I} Plagiarism declaration{#sec-annex_i .unnumbered .unlisted}
 \pagenumbering{gobble}
-
-
-
+\color{white}
+[![Example Picture 2](annex_files/plagiarism_declaration.png){ width=100% align="center"}]
+\normalcolor
 \newpage
 
 
-\pagenumbering{gobble}
+## \textsc{II} Plagiarism declaration{#sec-annex_ii .unnumbered .unlisted}
