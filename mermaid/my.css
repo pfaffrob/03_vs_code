@@ -15,9 +15,9 @@ body {
 }
 
 .rectangle {
-    display: inline-block !important;
-    height: 10px !important;
-    width: 20px !important;
+    display: inline-block;
+    height: 10px;
+    width: 20px;
     background-color: #e0ec98  !important;
-    vertical-align: left !important;
+    vertical-align: left;
   }
