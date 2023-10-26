@@ -264,7 +264,32 @@ def reclassify(input_file, output_file, reclassify_values):
         # Save the modified raster array as a new TIFF file
         with rasterio.open(output_file, "w", **meta) as dest:
             dest.write(reclassified_raster.astype(rasterio.int32), 1)
-            
+
+
+def combine_geotiffs(file1, file2, output_file):
+    # Open the two GeoTIFF files
+    with rasterio.open(file1) as src1, rasterio.open(file2) as src2:
+        # Read the data into numpy arrays
+        band1 = src1.read(1)
+        band2 = src2.read(1)
+
+    # Use numpy's logical_or function to combine the arrays
+    combined = np.logical_or(band1, band2).astype(rasterio.uint8)
+
+    # Get the metadata from the first file
+    meta = src1.meta
+
+    # Update the metadata for the new file
+    meta.update(
+        dtype=rasterio.uint8,
+        count=1,
+        compress='lzw'
+    )
+
+    # Write the combined array to a new GeoTIFF file
+    with rasterio.open(output_file, 'w', **meta) as dst:
+        dst.write(combined, 1)
+       
             
 def replace_nan_with_zero(input_file, output_file):
     with rasterio.open(input_file) as src:
@@ -831,3 +856,22 @@ def process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, inc
     plt.savefig(output_png, bbox_inches='tight')
 
 
+
+def get_tif_area(input_tif, included_values=None):
+    with rasterio.open(input_tif) as src:
+        spatial_resolution = src.res[0]
+        conversion_factor = (spatial_resolution ** 2) / 10000
+
+        band1 = src.read(1)
+        unique, counts = np.unique(band1, return_counts=True)
+        
+        if included_values is not None:
+            included_vals = np.asarray(included_values)
+            unique = np.intersect1d(unique, included_vals)
+        
+        data = dict(zip(unique[(unique != 0) & (unique != 255)], counts[(unique != 0) & (unique != 255)] * conversion_factor))
+        df = pd.DataFrame(list(data.items()), columns=['Year', 'Area (ha)'])
+        df['Year'] = df['Year']
+    
+    total_area = df['Area (ha)'].sum()
+    return total_area

@@ -2,46 +2,46 @@
 
 ## Data acquisition and selection
 
-Initially, databases such as Web of Knowledge or Google Scholar were searched for GIS and remote sensing studies covering Borneo, Southeast Asia or even a global extent. QGIS (Version 3.30) was used for initial data exploration. This led to the manual selection of data shown in @fig-data_overview for further analysis. Hereafter, the datasets are referred to by the names specified in the Content column. The research area included the landmass of Borneo, explicitly excluding the smaller surrounding islands. This delineation was obtained through the OSMnx python package (), which accesses the Open Street Maps (OSM) database [@boeingOSMnxPythonPackage2017].
+Initially, databases such as Web of Knowledge or Google Scholar were searched for GIS and remote sensing studies covering the extent Borneo, Southeast Asia or even a global extent and downloaded. QGIS (Version 3.30) was used for initial data exploration. This led to the manual selection of data shown in @fig-data_overview for further analysis. Hereafter, the datasets are referred to by the names specified in the content column. The research area was defined as the landmass of Borneo, explicitly excluding the smaller surrounding islands. This delineation was obtained through the download of the Borneon boundary using the OSMnx python package (Verison 1.3.0), which accesses the Open Street Maps (OSM) database [@boeingOSMnxPythonPackage2017].
 
-![Example Picture 2](05_method_files/data_overview.pdf){#fig-data_overview}
+![All datasets used in this thesis and the temporal scope they span.](05_method_files/data_overview.pdf){#fig-data_overview}
+
+## Software
+
+All data preparation and analysis steps were performed using open-source Python packages in Visual Studio Code (Version 1.83.0). Python version was 3.10.9. Rasterio (Version 1.3.6) and NumPy (Version 1.24.3) were the most relevant packages for data processing [@gilliesRasterioDocumentation2023; @harrisArrayProgrammingNumPy2020].
+For each step a Python function was developed, which requires an input path(s), optionally a target file path and an output path. The output file was compressed in lzw form. The full code is available on [github.com/pfaffrob/03_vs_code](https://github.com/pfaffrob/03_vs_code).
+OpenAI's Chat-GPT (versions 3.0, 3.5 and 4.0) was used to support code generation. Functions were created using a minimal example with the help of Chat-GPT. Subsequently, more complex features were implemented into the function through personal adjustments or continuous user feedback to the AI. The generated code was carefully inspected and reviewed to ensure its correctness.
+
 
 ## Data preparation
 
-All datasets, which existed in several segments, were merged to cover at least the extent of Borneo.  
-
-![Flowchart](../mermaid/raster_preparation.pdf){#fig-mermaid}
+All data has been brought into a consistent format. This included steps like merging multiple files, clipping to bbox, changing all values outside the mask (e.g. boundary of Borneo) to the _nodata_ value, and reprojecting it to a uniform projection. For the analysis, the Lambert Azimuthal Equal Area Projection was used with the center point being at 115° longitude and 0° latitude. The workflow for the preparation of raster and vector data is visible in @fig-data_preparation.
 
 
+::: {#fig-data_preparation layout-ncol=1}
 
+![raster data preparation](05_method_files/raster_preparation.pdf){#fig-raster_preparation}
 
+![vector data preparation](05_method_files/shp_preparation.pdf){#fig-shp_preparation}
 
+Workflow of data preparation. _green: processing steps; yellow: files_
+:::
+- Farbgebung vereinheitlichen (anpassen an @fig-bardeforestation)
 
-## Data processing 
-For further analysis, a value of >50% tree cover was considered as forest [@hansenHighResolutionGlobalMaps2013].
+- Detaillierter auf die verschiedenen Funktionen eingehen?
+
+## Analysis
+For answering the simpler questions that required only one data set, such as quantifying annual deforestation rates or total primary forest area in 2000, the area calculations could be performed without any further steps. For more complex questions, where multiple datasets were involved, they were resampled onto the same grid. To create buffer zones based on the built-up areas, each pixel whose center was located within a radius of 100, 200, 500, 1000, and 2000 meters to a pixel of the built-up area was used as a mask for further analysis. The workflow of this is visible in @fig-bufferworkflow. 
+
+![Workflow of buffer maps and subsequent combination with other datasets](05_method_files/buffer.pdf){#fig-bufferworkflow}
+
+- Detaillierter auf die verschiedenen Funktionen eingehen?
+
+## Further definitions
+The forest cover dataset shows the percentage of canopy cover. However, Hansen et al. provide no definition of what is considered forest [-@hansenHighResolutionGlobalMaps2013]. Therefore, a threshold of 75% closed canopy was chosen, which was also used by Turubanova et al. for comparison of their Results with GFW data [-@turubanovaOngoingPrimaryForest2018].  However, Turubanov et al. used expert interpreted training data for detection of patterns recognized as primary forest [-@turubanovaOngoingPrimaryForest2018]. Although areas with >75% closed canopy overlap nearly all of the primary forest areas (see Annex **XY**), these were reclassified as forest (see @fig-piefcover2000). 
 
 
 
 Aggregated plants and perennial woody plants such as coconut and oil palm were manually removed from subsequent analysis due to the cropland definition in the used dataset [@potapovGlobalMapsCropland2021], as well as crops with a total physical harvest area lower than 10000 ha within the project extent in any of the three datasets.
 
-Please see @fig-data_overview for the table.
-
-
-
-@fig-mermaid
-
-
-| Default | Left | Right | Center |
-|---------|:-----|------:|:------:|
-| 12      | 12   |    12 |   12   |
-| 123     | 123  |   123 |  123   |
-| 1       | 1    |     1 |   @hansenHighResolutionGlobalMaps2013    |
-
-: Demonstration of pipe table syntax 1
-
-
-
-
-## Data Collection
-
-### Data Source
+- Leider macht es trotz erfolgreicher Methodenentwicklung wenig Sinn dies genauer zu analysieren, da die intersection mit den Anbauflächen sehr gering ist. (Siehe @sec-discussion)

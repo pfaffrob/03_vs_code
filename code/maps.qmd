@@ -1,0 +1,1189 @@
+
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import rasterio
+from rasterio.plot import show
+from matplotlib_scalebar.scalebar import ScaleBar
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import geopandas as gpd
+import contextily as ctx
+import matplotlib.colorbar as mcb
+import matplotlib.patches as mpatches
+
+
+plt.rcParams['font.family'] = 'Arial'
+
+def plot_multiple_tifs(tif_list, output_path, top=None, left=None, bottom=None, right=None, basemap=True, figsize=12, shp_list = None):
+        # Create a new figure and set the projection
+    fig, ax = plt.subplots(figsize=(figsize, figsize))
+    if top is None or left is None or bottom is None or right is None:
+        # Retrieve the extent of the first input raster
+        with rasterio.open(tif_list[0]['path']) as src:
+            if top is None:
+                top = src.bounds.top
+            if left is None:
+                left = src.bounds.left
+            if bottom is None:
+                bottom = src.bounds.bottom
+            if right is None:
+                right = src.bounds.right
+
+    cbar_height = 0.015  # Set colorbar height
+    cbar_num = 0
+    cbar_bottom = 0.07
+    cbar_dict = {}
+
+    for tif_info in tif_list:
+        tif_path = tif_info['path']
+        colormap_name = tif_info.get('colormap', 'viridis')
+        value_range = tif_info.get('value_range', None)
+        single_color = tif_info.get('single_color', None)
+        transparency = tif_info.get('transparency', 1.0)
+        cmap_limits = tif_info.get('cmap_limits', (0,1))
+        cbar_title = tif_info.get('cbar_title', '') 
+        cbar_ticks = tif_info.get('cbar_ticks', 0) 
+        cbar_side_title = tif_info.get('cbar_side_title', '') 
+        cbar_order = tif_info.get('cbar_order', 0)
+        custom_cbar_distance = tif_info.get('cbar_distance', None)
+        zorder = tif_info.get('zorder', 2)
+
+        # Get the colormap object based on the colormap name
+        colormap = plt.get_cmap(colormap_name)
+        cmap_min = cmap_limits[0]
+        cmap_max = cmap_limits[1]
+        cmap = mcolors.ListedColormap(colormap(np.linspace(cmap_min, cmap_max, 256)))
+
+        with rasterio.open(tif_path) as src:
+            transform = src.transform
+
+            pixel_size = 1
+
+            row_start, col_start = src.index(left, top)
+            row_stop, col_stop = src.index(right, bottom)
+            window = ((row_start, row_stop), (col_start, col_stop))
+            window_array = src.read(1, window=window)
+            window_transform = src.window_transform(window)
+            window_array = np.where(window_array != 0, window_array, np.nan)
+            if value_range is not None:
+                start_range, end_range = value_range
+                masked_array = np.where((window_array >= start_range) & (window_array <= end_range), window_array, np.nan)
+            else:
+                masked_array = window_array
+            if single_color is not None:
+                single_color = mcolors.hex2color(single_color)
+                # Define a fixed range for the normalization, e.g., 0 to 1000
+                norm = mcolors.Normalize(vmin=0, vmax=1000)
+                cmap = mcolors.ListedColormap([single_color], name=f"single_color_cmap_{tif_path}")
+            else:
+                # Use the provided colormap and normalization
+                norm = mcolors.Normalize(vmin=np.nanmin(masked_array), vmax=np.nanmax(masked_array))
+                
+            # Now you can use the colormap and normalization in your plot
+            show(masked_array, ax=ax, transform=window_transform, cmap=cmap, norm=norm, zorder=zorder, alpha=1 - transparency)
+        
+        frame_line_width = 1
+        for key, spine in ax.spines.items():
+            spine.set_linewidth(frame_line_width*figsize*0.1) 
+
+        # Store colorbar information in dictionary
+        cbar_dict[cbar_num] = { 'cmap': cmap,
+                                'norm': norm,
+                                'order': tif_info.get('cbar_order', cbar_num),
+                                'distance': tif_info.get('cbar_distance', cbar_height + 0.05),
+                                'ticks': tif_info.get('cbar_ticks', 10),
+                                'cbar_title': tif_info.get('cbar_title', ''),
+                                'side_title': tif_info.get('cbar_side_title', ''),
+                                'transparency': tif_info.get('transparency', 1.0),
+                                'cbar_add_to_tick_value': tif_info.get('cbar_add_to_tick_value', 0),
+                                'cbar_round_tick_value': tif_info.get('cbar_round_tick_value', 0)}
+
+        cbar_num += 1  # Increment colorbar counter
+
+    # Sort colorbars by 'order'
+    sorted_cbars = sorted(cbar_dict.items(), key=lambda x: x[1]['order'])
+
+    # Get position of plot axes
+    ax_pos = ax.get_position()
+
+    # Add colorbars to plot in sorted order
+    for i, (cbar_num, cbar_info) in enumerate(sorted_cbars):
+        if i > 0:
+            # Calculate bottom position of colorbar based on the distance to the previous colorbar
+            cbar_bottom = sorted_cbars[i-1][1]['bottom'] - (cbar_info['distance']+cbar_height)
+        else:
+            # For the first colorbar, use the initial bottom position
+            cbar_bottom = cbar_bottom
+
+        # Store bottom position in dictionary for future reference
+        cbar_info['bottom'] = cbar_bottom
+
+        # Create new axes for colorbar with width adjusted to align with left edge of plot above
+        cbar_width = 0.5  # Set colorbar width to 50% of plot width
+        cbar_left = ax_pos.x0+0.02  # Calculate left position of colorbar
+        cbar_ax = fig.add_axes([cbar_left, cbar_bottom, cbar_width, cbar_height])
+
+        # Add colorbar to axes
+        color_bar = mcb.ColorbarBase(cbar_ax, cmap=cbar_info['cmap'], norm=cbar_info['norm'],alpha=1-cbar_info['transparency'], orientation='horizontal')
+        color_bar.ax.tick_params(labelsize=figsize*0.8)
+        # Generate evenly spaced ticks
+        ticks = np.linspace(color_bar.norm.vmin, color_bar.norm.vmax, cbar_info['ticks'])
+
+        color_bar.set_ticks(ticks)  # Set ticks at these positions
+        # Format tick labels to add 2000 to each value
+        tick_labels = [str(int(round(tick + cbar_info['cbar_add_to_tick_value'], cbar_info['cbar_round_tick_value']))) 
+                    if cbar_info['cbar_round_tick_value'] <= 0 
+                    else str(round(tick + cbar_info['cbar_add_to_tick_value'], cbar_info['cbar_round_tick_value'])) 
+                    for tick in ticks]
+        color_bar.set_ticklabels(tick_labels)
+        tick_length = figsize * 0.4  # specify your desired tick length here
+        color_bar.ax.tick_params(labelsize=figsize*0.8, length=tick_length)
+
+        color_bar.set_label(cbar_info.get('cbar_title', ''), fontsize = figsize, labelpad = (figsize)*0.5)
+
+        y_pos = cbar_bottom + cbar_height / 2
+
+        # Add side title
+        fig.text(0.67, y_pos, cbar_info['side_title'], va='center', ha='left', fontweight='bold', fontsize = figsize)
+
+        color_bar.outline.set_visible(False)
+    if basemap:
+
+        # Add an OSM basemap using contextily and remove attribution text
+        ctx.add_basemap(ax, crs=src.crs.to_string(), source=ctx.providers.Esri.WorldGrayCanvas, attribution='',
+                        zorder=1)
+
+    # Create a scale bar with the calculated pixel size
+    scalebar = ScaleBar(dx=pixel_size, units='m', location='lower left', box_alpha=0.5, font_properties={"size": figsize})
+    scalebar.zorder = 1000
+    ax.add_artist(scalebar)
+
+    if shp_list:
+        # First loop for the outline
+        for info in shp_list:
+            outline_colour = info.get('outline_colour', 'black')
+            outline_width = info.get('outline_width', 2)
+            zorder_outline = info.get('zorder_outline', 1)
+            # Read in the shapefile
+            gdf = gpd.read_file(info['path'])
+
+            # Plot the outline with specified properties
+            gdf.boundary.plot(ax=ax, linewidth=outline_width*0.1*figsize, color=outline_colour, zorder=zorder_outline)
+        
+        legend_counter = 0
+        # Second loop for the fill and rectangle
+        for i, info in enumerate(shp_list):
+            # Read in the shapefile
+            gdf = gpd.read_file(info['path'])
+            fill_colour = info.get('fill_colour', 'black')
+            fill_transparency = info.get('fill_transparency', 1)
+            outline_width = info.get('outline_width', 2)
+            zorder_fill = info.get('zorder_fill', 1)
+            # Plot the fill with specified properties
+            gdf.plot(ax=ax, facecolor=fill_colour, alpha=1-fill_transparency, edgecolor='none', zorder=zorder_fill)
+            
+            if info.get('legend', False) == True:
+                label = info.get('label', '')
+                fill_colour = info.get('fill_colour', 'black')
+                outline_colour = info.get('outline_colour', 'black')
+                fill_transparency = info.get('fill_transparency', 1)
+                
+                cbar_bottom = cbar_ax.get_position().y0 - 0.045 - legend_counter * 0.025
+                legend_counter = legend_counter + 1
+
+                # Create a new axis for the rectangle
+                ax_rect = fig.add_axes([0.55, cbar_bottom, 0.1, 0.015])
+
+                # Add a rectangle for the fill with transparency
+                if fill_transparency < 1:
+                    fill_rectangle = mpatches.Rectangle((0, 0), 1, 1, facecolor=fill_colour, edgecolor='none', linewidth=0, alpha=1 - fill_transparency)
+                    ax_rect.add_patch(fill_rectangle)
+                # Add a rectangle for the outline (no transparency)
+                outline_rectangle = mpatches.Rectangle((0, 0), 1, 1, facecolor='none', edgecolor=outline_colour, linewidth=figsize * 0.2 * outline_width)
+                ax_rect.add_patch(outline_rectangle)
+                # Create a new axis for the text to the right of the rectangle
+                ax_text = fig.add_axes([0.67, cbar_bottom, cbar_width - 0.35, 0.015])
+
+                # Add text to ax_text
+                ax_text.text(0, 0.5, label, ha='left', va='center', fontsize=figsize, fontweight='bold', color='black')
+
+                # Adjust the limits of ax_rect and ax_text
+                ax_rect.set_xlim(0, 1)
+                ax_rect.set_ylim(0, 1)
+                ax_text.set_xlim(0, 1)
+                ax_text.set_ylim(0, 1)
+
+                # Make ax_rect and ax_text invisible
+                ax_rect.axis('off')
+                ax_text.axis('off')
+
+    # Load the PNG image
+    img = plt.imread('north_arrow.png')
+
+    # Create an inset axes in the bottom right corner
+    ax_arrow = inset_axes(ax, width="6%", height="6%", loc='lower right')
+
+    # Set the axes background color to transparent
+    ax_arrow.set_facecolor('none')
+
+    # Display the image with transparency set based on the provided colormap
+    ax_arrow.imshow(img, cmap=cmap, norm=norm, alpha=1)
+
+    # Remove axis numbering for the inset axes
+    ax_arrow.set_xticks([])
+    ax_arrow.set_yticks([])
+
+    # Turn off the visibility of the axis
+    ax_arrow.axis('off')
+
+    # Create an inset axes in the upper left corner
+    # Create an inset axes in the upper left corner
+    ax_inset = inset_axes(ax, width="20%", height="20%", loc='upper left')
+
+    frame_line_width = 1.0  # Set your desired linewidth here
+    for key, spine in ax_inset.spines.items():
+        spine.set_linewidth(frame_line_width*figsize*0.1)
+
+
+    # Load the Borneo boundary shapefile with the correct path
+    borneo_boundary = gpd.read_file('../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp')
+
+    # Plot the Borneo boundary on the inset axes
+    borneo_boundary.plot(ax=ax_inset, color='#595857')
+
+    # Add a red rectangle to the inset map showing the window used in the main plot
+    rectangle = plt.Rectangle((left, bottom), right - left, top - bottom,
+                                edgecolor='#FF0000', facecolor='none', linewidth=figsize*0.2)
+    ax_inset.add_patch(rectangle)
+    ax_inset.set_xticks([])
+    ax_inset.set_yticks([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.savefig(output_path, bbox_inches='tight', dpi=120)
+    plt.show()
+```
+
+
+```{python}
+# tif options (with default settings)
+'path': 'your_tiff_file.tif',
+'colormap': 'viridis',
+'value_range': None,
+'single_color': None,
+'transparency': 1.0,
+'cmap_limits': (0, 1),
+'cbar_title': '',
+'cbar_ticks': 0,
+'cbar_side_title': '',
+'cbar_order': 0,
+'cbar_distance': None,
+'cbar_add_to_tick_value': 0,
+'cbar_round_tick_value': 0
+
+# shp options (with default settings)
+'path': 'your_shapefile.shp',
+'outline_width': 1,
+'outline_colour': 'black',
+'fill_colour': 'none',
+'fill_transparency': 0.0,
+'legend': True
+'label': ''
+```
+
+# 1 Forest Loss and Protected Areas
+
+## 1 How much forest area was lost yearly and in total in protected areas and due to forest fires?
+
+```{python}
+top = 480000
+left = -125000
+bottom = 430000
+right = -75000
+
+
+
+tif_list = [
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif',
+        'colormap': 'Blues',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': None,
+        'transparency': 0,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'Forest loss',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+    },
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_fires.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': None,
+        'transparency': 0,
+        'cbar_title': 'year',
+        'cbar_ticks': 5,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'Forest fires',
+        'cbar_order': 2,
+        'cbar_distance': 0,
+    }
+]
+shp_list = [
+    {
+        'path': '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp',
+        'outline_width': 0.5,
+        'outline_colour': '#5f038a',
+        'fill_colour': '#5f038a',
+        'fill_transparency': 0.9,
+        'legend': True,
+        'label': 'Protected areas'
+
+    },
+    {
+        'path': '../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp',
+        'outline_width': 0.5,
+        'outline_colour': '#000000',
+        'fill_transparency': 1,
+        'legend': False
+    }
+]
+output_path = 'results/maps/deforestation_patterns.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = shp_list,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 30,
+                    basemap=True)
+```
+
+
+# 2 Forest Loss in Protected areas to forest fires
+
+```{python}
+top = -240000
+left = -180000
+bottom = -330000
+right = -90000
+
+tif_list = [
+   
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif',
+        'zorder': 3,
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#55a336',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'forest cover (2000)',
+        'cbar_order': 4,
+        'cbar_distance': 0.0,
+    },
+        {
+        'path': '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif',
+        'zorder': 4,
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#234516',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'primary forest (2001)',
+        'cbar_order': 3,
+        'cbar_distance': 0.015,
+    },
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_fires.tif',
+        'colormap': 'Reds',
+        'zorder': 6,
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#b30012',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'forest fires',
+        'cbar_order': 2,
+        'cbar_distance': 0.0,
+    },
+    {
+        'path': '../../08_data_processed/deforestation/primary_forest_forest_fires.tif',
+        'colormap': 'Purples',
+        'zorder': 7,
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#740bde',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'forest fires (primary forest)',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+    }
+]
+
+shp_list = [
+    {
+        'path': '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp',
+        'zorder_fill': 8,
+        'zorder_outline': 8,
+        'outline_width': 2.5,
+        'outline_colour': '#4a4a4a',
+        'fill_colour': '#ffffff',
+        'fill_transparency': 0.9,
+        'legend': True,
+        'label': 'Protected areas'
+
+    },
+    {
+        'path': '../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp',
+        'zorder_fill': 2,
+        'zorder_outline': 8,
+        'outline_width': 0.5,
+        'outline_colour': '#000000',
+        'fill_transparency': 1,
+        'legend': False
+    }
+]
+output_path = 'results/maps/deforestation_protected_areas_forest_fires.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = shp_list,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 30,
+                    basemap=True)
+```
+
+
+
+# 3 Forest Loss in Protected areas to other reasons
+
+```{python}
+top = -70000
+left = 200000
+bottom = -120000
+right = 250000
+
+tif_list = [
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif',
+        'colormap': 'Blues',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': None,
+        'transparency': 0,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'Forest loss',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+    },{
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_fires.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': None,
+        'transparency': 0,
+        'cbar_title': 'year',
+        'cbar_ticks': 5,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'Forest fires',
+        'cbar_order': 2,
+        'cbar_distance': 0,
+    }
+]
+
+shp_list = [
+    {
+        'path': '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp',
+        'outline_width': 0.5,
+        'outline_colour': '#5f038a',
+        'fill_colour': '#5f038a',
+        'fill_transparency': 0.9,
+        'legend': True,
+        'label': 'Protected areas'
+
+    },
+    {
+        'path': '../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp',
+        'outline_width': 0.5,
+        'outline_colour': '#000000',
+        'fill_transparency': 1,
+        'legend': False
+    }
+]
+output_path = 'results/maps/deforestation_protected_areas_other.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = shp_list,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 30,
+                    basemap=True)
+```
+
+
+
+
+# 3 Primary Forest Loss Malaysia
+
+```{python}
+top = 335000
+left = -65000
+bottom = 240000
+right = 30000
+
+tif_list = [
+    {
+        'path': '../../08_data_processed/deforestation/deforestation_primary_forest.tif',
+        'colormap': 'Blues',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': None,
+        'transparency': 0,
+        'cbar_ticks': 5,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_title': 'year',
+        'cbar_side_title': 'Forest loss',
+        'cbar_order': 2,
+        'cbar_distance': 0,
+        'zorder': 3
+    },
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_fires.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': None,
+        'transparency': 0,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'Forest fires',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+        'zorder': 4
+    },
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#234516',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'primary forest (2001)',
+        'cbar_order': 3,
+        'cbar_distance': 0.045,
+        'zorder': 2
+
+    }
+]
+
+
+output_path = 'results/maps/primary_deforestation.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = None,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 50,
+                    basemap=True)
+```
+
+
+
+# 3 General Forest Loss
+
+## 3.1 How much forest area was lost yearly and in total?
+
+```{python}
+top = -270000
+left = -310000
+bottom = -340000
+right = -240000
+
+tif_list = [
+    {
+        'path': '../../07_data_prepared/oil_palm/LAEA_detection_year_2001_2017.tif',
+        'colormap': cm.Blues,  # Specify the colormap
+        'value_range': None,  # Specify the date range
+        'single_color': None,  # Specify a single color as a hexadecimal code
+        'transparency': 0  # Specify transparency
+    },
+    {
+        'path': '../../08_data_processed/combined/new_oil_palm_deforestation.tif',
+        'colormap': cm.Oranges,  # Specify the colormap
+        'value_range': None,  # Specify the date range
+        'single_color': None,  # Specify a single color as a hexadecimal code
+        'transparency': 0  # Specify transparency
+    }
+]
+output_path = 'results/maps/oil_palm_with_after_deforestation.png'
+
+plot_multiple_tifs(tif_list, left = left, right = right, bottom = bottom, top = top, output_path = output_path, figsize = 10, basemap=True)
+```
+
+
+# 4 Build up areas
+
+## 4.5	How much new oil palm plantation area occured within 0.1, 0.2, 0.5, 1, and 2 km of year 2000, new_build up and total build up areas?
+'../../08_data_processed/buffer_oilpalm/oil_palm_buffer_2000_new_build_up_area.tif'
+```{python}
+top = -270000
+left = -265000
+bottom = -290000
+right = -245000
+
+tif_list = [
+    {
+        'path': '../../08_data_processed/buffer_oilpalm/oil_palm_buffer_2000_new_build_up_area.tif',
+        'colormap': cm.winter,  # Specify the colormap
+        'value_range': None,  # Specify the date range
+        'single_color': '#3c42fa',  # Specify a single color as a hexadecimal code
+        'transparency': 0.9  # Specify transparency
+    },    {
+        'path': '../../08_data_processed/buffer_oilpalm/oil_palm_buffer_1000_new_build_up_area.tif',
+        'colormap': cm.winter,  # Specify the colormap
+        'value_range': None,  # Specify the date range
+        'single_color': '#3c42fa',  # Specify a single color as a hexadecimal code
+        'transparency': 0.8  # Specify transparency
+    },    {
+        'path': '../../08_data_processed/buffer_oilpalm/oil_palm_buffer_500_new_build_up_area.tif',
+        'colormap': cm.winter,  # Specify the colormap
+        'value_range': None,  # Specify the date range
+        'single_color': '#3c42fa',  # Specify a single color as a hexadecimal code
+        'transparency': 0.7  # Specify transparency
+    },    {
+        'path': '../../08_data_processed/buffer_oilpalm/oil_palm_buffer_200_new_build_up_area.tif',
+        'colormap': cm.winter,  # Specify the colormap
+        'value_range': None,  # Specify the date range
+        'single_color': '#3c42fa',  # Specify a single color as a hexadecimal code
+        'transparency': 0.6  # Specify transparency
+    },    {
+        'path': '../../08_data_processed/buffer_oilpalm/oil_palm_buffer_100_new_build_up_area.tif',
+        'colormap': cm.winter,  # Specify the colormap
+        'value_range': None,  # Specify the date range
+        'single_color': '#3c42fa',  # Specify a single color as a hexadecimal code
+        'transparency': 0.5  # Specify transparency
+    },
+
+]
+output_path = 'results/maps/oil_palm_buffer_newe_build_up.png'
+
+plot_multiple_tifs(tif_list, left = left, right = right, bottom = bottom, top = top, output_path = output_path, figsize = 10, basemap=True)
+```
+
+
+
+
+
+
+```{python}
+shp_list = [
+        {
+        'path': '../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp',
+        'outline_width': 2,
+        'outline_colour': '#008f26',
+        'fill_colour': '#56f580',
+        'fill_transparency': 1}
+]
+
+top = 50000
+left = 200000
+bottom = -45000
+right = 295000
+
+tif_list = [
+    {
+        'path': '../../07_data_prepared/crop_type/crops_2000/LAEA/LAEA_spam2000V3r107_global_P_CASS_A.tif',
+        'colormap': 'autumn_r',  # Specify the colormap
+        'value_range': (10,20),  # Specify the date range
+        'single_color': None,  # Specify a single color as a hexadecimal code
+        'transparency': 0.5,
+        'cbar_order': 1,
+        'cbar_side_title': 'Cassava',
+        'cbar_title': 'year',
+        'cbar_ticks': 5,
+        'cbar_distance': 0.05,
+        'cmap_limits': (0.2,1)
+    }
+]
+output_path = 'results/maps/LAEA_gfw_2000_2022_borneo.png'
+
+
+
+shapefile_path = '../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp'
+
+plot_multiple_tifs(tif_list, output_path = output_path, figsize = 20, basemap=True, shp_list = shp_list)
+```
+
+
+
+```{python}
+top = -240000
+left = -180000
+bottom = -330000
+right = -90000
+
+tif_list = [
+
+        {
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif',
+        'zorder': 4,
+        'value_range': (90,100),
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'single_color': '#2fa603',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'Forest cover in 2000',
+        'cbar_order': 2,
+        'cbar_distance': 0,
+    },
+
+
+]
+
+shp_list = [
+    {
+        'path': '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp',
+        'zorder_fill': 7,
+        'zorder_outline': 8,
+        'outline_width': 0.5,
+        'outline_colour': '#5f038a',
+        'fill_colour': '#5f038a',
+        'fill_transparency': 0.9,
+        'legend': True,
+        'label': 'Protected areas'
+
+    },
+    {
+        'path': '../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp',
+        'zorder_fill': 7,
+        'zorder_outline': 8,
+        'outline_width': 0.5,
+        'outline_colour': '#000000',
+        'fill_transparency': 1,
+        'legend': False
+    }
+]
+output_path = 'results/maps/deforestation_protected_areas_forest_fires.png'
+
+plot_multiple_tifs(tif_list,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 30,
+                    basemap=True)
+```
+
+
+# Deforestation x oil palm x forest fires
+
+```{python}
+top = 190000
+left = -660000
+bottom = 100000
+right = -570000
+
+
+
+tif_list = [
+    {
+        'path': '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif',
+        'colormap': 'Greens',
+        'cmap_limits': (0.4, 1),
+        'value_range': (2005,2017),
+        'single_color': None,
+        'transparency': 0.0,
+        'cbar_ticks': 5,
+        'cbar_add_to_tick_value': 0,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'new oil palm',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+        'zorder': 4
+    },
+    {
+        'path': '../../08_data_processed/combined/new_oil_palm_primary.tif',
+        'colormap': 'Blues',
+        'cmap_limits': (0.4, 1),
+        'value_range': (5,17),
+        'single_color': None,
+        'transparency': 0.0,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 0,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'new oil palm (primary)',
+        'cbar_order': 0,
+        'cbar_distance': 0,
+        'zorder': 4
+    },
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif',
+        'colormap': 'Purples',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': (1,13),
+        'single_color': None,
+        'transparency': 0,
+        'cbar_title': 'year',
+        'cbar_ticks': 5,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'forest loss',
+        'cbar_order': 5,
+        'cbar_distance': 0.00,
+        'zorder': 2
+
+    },
+     {
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_fires.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': (1,13),
+        'single_color': None,
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'forest fires',
+        'cbar_order': 2,
+        'cbar_distance': 0.03,
+        'zorder': 3
+
+    }
+]
+output_path = 'results/maps/deforestation_op_fires.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = None,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 25,
+                    basemap=True)
+```
+
+
+
+
+
+
+
+
+
+##############################################
+##############################################
+##############################################
+################## Annex #####################
+##############################################
+##############################################
+##############################################
+
+# Reclassification of primary forest to fcover 2000
+```{python}
+top = -162000
+left = -295000
+bottom = -182000
+right = -275000
+
+
+
+tif_list = [
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000.tif',
+        'colormap': 'Blues',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': "#595857",
+        'transparency': 0.03,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': '>75% closed canopy (2000)',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+        'zorder': 3
+    },
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#FF0000',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'primary forest (2001)',
+        'cbar_order': 2,
+        'cbar_distance': 0.015,
+        'zorder': 2
+
+    }
+]
+output_path = 'results/maps/fcover2000_75_and_primary_forest.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = None,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 25,
+                    basemap=True)
+```
+
+# Validation of deforestation existing build up area
+
+```{python}
+top = 165000
+left = -610000
+bottom = 153000
+right = -598000
+
+
+
+tif_list = [
+    {
+        'path': '../../08_data_processed/combined/build_up_area_deforestation.tif',
+        'colormap': 'Blues',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': (1.5, 2.5),
+        'single_color': "#8B0000",
+        'transparency': 0.0,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'deforestation on built up areas 2000',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+        'zorder': 4
+    },
+    {
+        'path': '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif',
+        'colormap': 'Blues',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': (1.5, 2.5),
+        'single_color': "#e07110",
+        'transparency': 0.4,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'built up areas 2000',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+        'zorder': 3
+    },
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif',
+        'colormap': 'Greens',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': None,
+        'transparency': 0,
+        'cbar_title': 'year',
+        'cbar_ticks': 5,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'forest loss',
+        'cbar_order': 2,
+        'cbar_distance': 0.015,
+        'zorder': 2
+
+    }
+]
+output_path = 'results/maps/validation_built_up_deforestation.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = None,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 25,
+                    basemap=True)
+```
+
+# Dense vegetation x oil palm
+
+```{python}
+top = 520000
+left = 340000
+bottom = 485000
+right = 375000
+
+
+
+tif_list = [
+
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#234516',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'primary forest (2001)',
+        'cbar_order': 2,
+        'cbar_distance': 0.015,
+        'zorder': 3
+
+    },{
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif',
+        'zorder': 4,
+        'value_range': None,
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'single_color': '#386b24',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': '>=75% closed canopy',
+        'cbar_order': 2,
+        'cbar_distance': 0,
+        'zorder': 2
+    },
+    {
+        'path': '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif',
+        'colormap': 'Greens',
+        'cmap_limits': (0.4, 1),
+        'value_range': (2000,2003),
+        'single_color': '#c20c02',
+        'transparency': 0.5,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 0,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'new oil palm (2000 - 2003)',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+        'zorder': 4
+    }
+]
+output_path = 'results/maps/validation_built_up_deforestation.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = None,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 25,
+                    basemap=True)
+```
+
+# Dense vegetation x primary x river
+
+```{python}
+top = 120000
+left = -90000
+bottom = 60000
+right = -30000
+
+
+tif_list = [
+
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#234516',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'primary forest (2001)',
+        'cbar_order': 3,
+        'cbar_distance': 0.045,
+        'zorder': 3
+
+    },{
+        'path': '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif',
+        'value_range': None,
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'single_color': '#386b24',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': '>=75% closed canopy (2000)',
+        'cbar_order': 4,
+        'cbar_distance': 0,
+        'zorder': 2
+    },
+    {
+        'path': '../../07_data_prepared/infrastructure/LAEA_build_up_area_2000.tif',
+        'colormap': 'Greens',
+        'cmap_limits': (0.4, 1),
+        'value_range': None,
+        'single_color': '#ff12c0',
+        'transparency': 0,
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 0,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'built-up 2000',
+        'cbar_order': 1,
+        'cbar_distance': 0,
+        'zorder': 5
+    },
+    {
+        'path': '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': None,
+        'transparency': 0,
+        'cbar_title': 'year',
+        'cbar_ticks': 5,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'forest loss',
+        'cbar_order': 2,
+        'cbar_distance': 0.015,
+        'zorder': 4
+
+    }
+]
+output_path = 'results/maps/reason_secondary_rivers.png'
+
+plot_multiple_tifs(tif_list,
+                    shp_list = None,
+                    left = left, right = right, bottom = bottom, top = top,
+                    output_path = output_path,
+                    figsize = 25,
+                    basemap=True)
+```

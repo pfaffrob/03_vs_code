@@ -4,7 +4,7 @@ project:
 book:
   title: Quantification of deforestation on Borneo in the last 20 years based on open source geodata
   author: "Robin Pfaff"
-  date: "6/27/2023"
+  date: "10/29/2023"
   chapters:
     - index.qmd
     - text/03_introduction.qmd
@@ -43,6 +43,14 @@ header-includes:
   - \makeatletter
   - \patchcmd{\chapter}{\if@openright\cleardoublepage\else\clearpage\fi}{}{}{}
   - \makeatother
+  - \usepackage{caption}
+  - \usepackage{caption}
+  - \captionsetup[figure]{font={footnotesize}, labelfont={bf}}
+  - \captionsetup[table]{font={footnotesize}, labelfont={bf}}
+  - \usepackage{chngcntr}
+  - \counterwithout{figure}{chapter}
+  - \counterwithout{table}{chapter}
+
 
 nocite: |
   @unep-wcmcProtectedAreaProfile2023

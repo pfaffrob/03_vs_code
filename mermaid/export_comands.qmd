@@ -2,6 +2,8 @@
 
 cd /Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/03_vs_code/mermaid
 
+./generate_diagrams.sh
+
 ```{python}
 import os
 

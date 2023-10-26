@@ -1,10 +1,10 @@
-# Discussion
+# Discussion {#sec-discussion}
 
 However, the data showing forest gain in the span of 2001 - 2012 is inaccurate. Analysis showed that 32% of the alleged forest gain represents newly established palm oil plantations. Thus, all new palm oil cultivation areas established between 2001 and 2012 have been removed from the forest gain dataset.
 
 ## Data selection 
 ### Crop harvest area
-Existing mapping of cropland all take a similar approach. They disaggregate national and subnational statistics and estimate their allocation to low-resolution grid cells of 5 arcminutes (@wood-sichraSpatialProductionAllocation2016; @youGeneratingPlausibleCrop2009; @yuCultivatedPlanet20102020; @groganGlobalGriddedCrop2022). Among them, the Spatial Production Allocation Model (SPAM) takes the most factors into account rendering it the most comprehensive data. (@youMappingGlobalCropping2022) Additionally, the dataset family currently contains data for the years 2000, 2005 and 2010, which makes it the most suited choice for the present work (@wood-sichraSpatialProductionAllocation2016; @youGeneratingPlausibleCrop2009; @yuCultivatedPlanet20102020). However, due to improvements in the method of creating the datasets, the more recent ones are a more accurate representation of the physical harvest area and are more finely broken down into distinct crops. (@wood-sichraSpatialProductionAllocation2016; @yuCultivatedPlanet20102020). This is why coconut is missing in the year 2000 even though it was an important crop for both Indonesia and Malaysia at that time (@FAOSTAT).
+Existing mapping of cropland all take a similar approach. They disaggregate national and subnational statistics and estimate their allocation to low-resolution grid cells of 5 arcminutes (@wood-sichraSpatialProductionAllocation2016; @youGeneratingPlausibleCrop2009; @yuCultivatedPlanet20102020; @groganGlobalGriddedCrop2022). Among them, the Spatial Production Allocation Model (SPAM) takes the most factors into account rendering it the most comprehensive data. (@youMappingGlobalCropping2022) Additionally, the dataset family currently contains data for the years 2000, 2005 and 2010, which makes it the most suited choice for the present work (@wood-sichraSpatialProductionAllocation2016; @youGeneratingPlausibleCrop2009; @yuCultivatedPlanet20102020). However, due to improvements in the method of creating the datasets, the more recent ones are a more accurate representation of the physical harvest area and are more finely broken down into distinct crops. (@wood-sichraSpatialProductionAllocation2016; @yuCultivatedPlanet20102020). This is why coconut is missing in the year 2000 even though it was an important crop for both Indonesia and Malaysia at that time [@faoFAOSTATDatabase2023].
 
 Although a more recent dataset called Global Agro-ecological Zones (GAEZ v4.0) was available for harvested crops in 2015, no analysis was conducted with it because the data lacked the necessary quality and therefore could not be compared to the SPAM datasets. Just like the SPAM dataset, FAO statistics complemented with national data on FAO gaps, were used to calculate crop yield in a 5 arcminute resolution grid. However, the pixel values in the GAEZ 2015 dataset are based upon the GAEZ 2010 (GAEZ v3.0) dataset, whose download portal does not work anymore (@fao/iiasaGlobalAgroecologicalZones2010). It was calculated by multiplying the year GAEZ 2010 pixel value by the countries' change in the given crop over the last 5 years. As a result, any spatial displacement in the harvest area of a given crop to another region is incorrectly mapped rendering the intended analysis inadequate.
 
@@ -15,13 +15,40 @@ Nevertheless, SPAM data is also subject to non-negligible drawbacks, since ### !
 
 
 ## Processing
-As indicated before, merging data from different sources is challenging. This is especially true for the croplands in higher resolution (~30 m) with the physical harvest area for the individual crops in lower resolution (5 arcminutes). Especially because the two datasets were created with fundamentally different methods. While the dataset of the cultivated areas was created by analysis of satellite data time-series and showing their precise extent (@potapovGlobalMapsCropland2021), the physical harvested area maps of the different crops were compiled by a complex model based on statistics and estimates (@wood-sichraSpatialProductionAllocation2016; @youGeneratingPlausibleCrop2009; @yuCultivatedPlanet20102020). 
+For area calculations, it is crucial to choose a well-suited coordinate reference system. Taking a UTM zone was considered too inaccurate, as Borneo spans over four UTM zones. The only crs available covering Borneo is the Timbalai 1948 [@klokantechnologiesgmbhTimbalai1948RSO]. But even this projection only adequately depicts one part, or more precisely the Malaysian part, and thus distorts the larger Indonesian part of Borneo. Therefore the Lambert Azimuthal Equal Area Projection was chosen since it is well suited for accurately showing the area in large spatial extents.[@esriQuick_Notes_on_Map_Projections_in_ArcGIS_nov2019Pdf2019; @esriLambertAzimuthalEqualarea2023]. Although this does not affect the area calculations, the center was manually set to the center of Borneo to achieve a visualization of Borneo that minimizes distortion.
+As indicated before, merging data from different sources is challenging. This is especially true for the croplands in higher resolution (~30 m) with the physical harvest area for the individual crops in lower resolution (5 arcminutes). Especially because the two datasets were created with fundamentally different methods. While the dataset of the cultivated areas was created by analysis of satellite data time-series and showing their precise extent (@potapovGlobalMapsCropland2021), the physical harvested area maps of the different crops were by a complex model based on statistics and estimates (@wood-sichraSpatialProductionAllocation2016; @youGeneratingPlausibleCrop2009; @yuCultivatedPlanet20102020). 
 Even though a method to aggregate these datasets was developed, the main reason why crops were not further analyzed was that the intersection area of newly detected oil palm plantations was below a total of 80 km² for all of Borneo over the span from 2000 to 2017. Since this represents only such a small fraction of the total cropland (~2000 - ~3500 km²) and 
 
-## Oil Palm
+## Forest
+
+One reason primary forests do not extend to the riverbanks is that the river helps shape the surrounding forest through bank shifting or flooding. Much more likely, however, is that the rivers serve as transportation routes and thus provide easy access for logging. This assumption is also supported by the fact that logging occurred adjacent to the river during the study period (see Annex V).
+
+It is important to note, that the forest cover dataset only represents tree crowns. This means, that 
+
+Large interconnected forests, including primary forest still exist on Borne...
+Central Borneo possesses one of the last interconnected large forest fragments, rendering it especially important to protect it [@haddadHabitatFragmentationIts2015a].
+
+hansen et al weist auf erster seite hin, dass indonesiische regierung 2011 neue regulierungen eingeführt hat zu abholzung.
+
+
+Due to the method applied for forest loss detection, there was also some deforestation outside secondary forest or dense vegetation. 
+
+
+## Infrastructure
+
+Theoretically, there should not be any deforestation on built up areas from 2000. While the marginal 0.8% overlap with primary forest clearing confirms the accuracy of the data, the 17.7% with residual dense vegetation cannot be attributed exclusively to this cause (see @fig-forestloss_pie_existing_built_up). 
+
+### Oil Palm
 
 Whilst this thesis allocates ~4 Mha to newly detected oil palm plantations, another paper states a higher number with ~ 5.5 Mha (@gaveauRiseFallForest2019). --> different crs (crs not given), falsely classified to pulp wood as difficult to distinguish.
 
-## Biodiversity
+However, it would be too simple to blame this deforestation only to palm oil as the single driver as it remains unknown whether oil palm caused or simply followed deforestation [@fitzherbertHowWillOil2008]. Companies use palm oil concessions to obtain permission to log, and thus make money, without cultivating palm oil on the land [@fitzherbertHowWillOil2008].
+
+Even though plantation expansion has slowed, the recent large price jump (from US$601 per ton in 2019 to US$1276 in 2022) is a worrying indicator [@worldbankAveragePricesPalm2023]. This because the price is closely linked to the expansion of oil palm production [@gaveauSlowingDeforestationIndonesia2022] and thus to environmental issues discussed in @sec-oilpalm.
+
+### Biodiversity
 
 If the deforestation drivers are not addressed, biodiversity will continue to decline, as examined in a case study of the Borneo orangutan (@voigtDeforestationProjectionsImply2022).
+
+
+_Our results show the importance of protecting forests from anthropogenic modifications. Protection of hyperdiverse tropical forests results in a positive feedback, since they reduce biological invasions, which will in turn safeguard native species richness and abundance, ensuring their continued ecosystem services (IPBES, 2019b)._ [@mungiRoleSpeciesRichness2021]

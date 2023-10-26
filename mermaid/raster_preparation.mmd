@@ -3,16 +3,20 @@ stateDiagram
     A1: input geotif 1
     A2: input geotif 2
     A3: input geotif ...
+    B: Borneo boundary
     C: merge
     D: clip to bbox
-    E: change values outside mask
+    E: change values <br> outside mask
     F: reclassify
     G: output tif
-    H: <center>reproject\n<small><sub>Lambert Azimuthal Equal Area</sub></small></center>
-    I: LAEA output tif
+    H: <center>reproject\n<small><sub>Lambert <br> Azimuthal Equal Area</sub></small></center>
+    I: LAEA output <i>.tif</i>
+
     A1 --> C
     A2 --> C
     A3 --> C
+    B --> D
+    B --> E
     C --> D
     D --> E
     E --> F
@@ -23,6 +27,7 @@ stateDiagram
 class A1 file
 class A2 file
 class A3 file
+class B file
 class C process
 class D process
 class E process

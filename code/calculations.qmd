@@ -3,22 +3,33 @@ from my_functions import *
 ```
 # General Forest
 
+## reclassify to get forest extent
 ```{python}
 input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_fcover_2000_borneo.tif'
 output_tif ='../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000.tif'
 
-reclassify_values = {0: range(1,50),
-                     1: range(50,101)}
+reclassify_values = {0: range(1,75),
+                     1: range(75,101)}
 
 reclassify(input_tif, output_tif, reclassify_values)
 ```
 
+# add primary forest
+```{python}
+
+file_1 = '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000.tif'
+file_2 = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+output = '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif'
+
+combine_geotiffs(file_1, file_2, output)
+
+```
 
 
 ```{python}
 ## Set variables for the title and paths
 title = 'Borneo forest cover in 2000'
-input_tif = '../../07_data_prepared/deforestation/forest_cover_year_2000.tif'
+input_tif = '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif'
 output_csv = 'results/tables/forest_cover_year_2000.csv'
 output_png = 'results/plots/forest_cover_year_2000.png'
 
@@ -35,6 +46,113 @@ title = 'Primary forest in 2001'
 input_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
 output_csv = 'results/tables/primary_forest_2001.csv'
 output_png = 'results/plots/primary_forest_2001.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+
+
+# Composition of highly vegetated areas
+
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+output_tif = '../../08_data_processed/combined/secondary_forest.tif'
+mask_values = [1]
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = True)
+```
+
+```{python}
+## Set variables for the title and paths
+title = 'Secondary 2000'
+input_tif = '../../08_data_processed/combined/secondary_forest.tif'
+output_csv = 'results/tables/secondary_forest.csv'
+output_png = 'results/plots/secondary_forest.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```
+
+```{python}
+input_tif = '../../08_data_processed/combined/secondary_forest.tif'
+mask_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
+output_tif = '../../08_data_processed/combined/secondary_forest_oil_palm_00_03.tif'
+mask_values = [2000,2001,2002,2003]
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = False)
+```
+
+```{python}
+## Set variables for the title and paths
+title = 'Oil Palm in Secondary 2000'
+input_tif = '../../08_data_processed/combined/secondary_forest_oil_palm_00_03.tif'
+output_csv = 'results/tables/op_in_secondary_forest_2000.csv'
+output_png = 'results/plots/op_in_secondary_forest_2000.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum=True)
+```
+
+# PA Sum
+```{python}
+import geopandas as gpd
+
+def calculate_shapefile_area(shapefile_path):
+
+
+    # Read the shapefile
+    gdf = gpd.read_file(shapefile_path)
+
+    # Calculate the total area
+    total_area = gdf.geometry.area.sum()
+
+    return total_area
+
+# Example usage:
+shapefile_path = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
+area = calculate_shapefile_area(shapefile_path)
+print(f'Total area of the shapefile: {area} square units')
+
+```
+
+# portion of primary and secondary forest
+
+```{python}
+input_tif = '../../08_data_processed/combined/secondary_forest.tif'
+mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
+output_tif = '../../07_data_prepared/protected_areas/protected_areas_secodary.tif'
+
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+
+```
+
+```{python}
+## Set variables for the title and paths
+title = 'protected area secondary forest'
+input_tif = '../../07_data_prepared/protected_areas/protected_areas_secodary.tif'
+output_csv = 'results/tables/protected_areas_secodary.csv'
+output_png = 'results/plots/protected_areas_secodary.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+mask_shp = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
+output_tif = '../../07_data_prepared/protected_areas/protected_areas_primary.tif'
+
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+
+```
+
+```{python}
+## Set variables for the title and paths
+title = 'protected area primary forest'
+input_tif = '../../07_data_prepared/protected_areas/protected_areas_primary.tif'
+output_csv = 'results/tables/protected_areas_primary.csv'
+output_png = 'results/plots/protected_areas_primary.png'
 
 # Call the function with your variables
 process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
@@ -353,10 +471,10 @@ process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_su
 
 ```{python}
 input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2001_2017.tif'
-mask_tif = '../../07_data_prepared/deforestation/LAEA_gfw_fcover_2000_borneo.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif'
 output_tif = '../../08_data_processed/combined/new_oil_palm_nonforest.tif'
 
-mask_values = list(range(51,101))
+mask_values = [1]
 
 mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=True)
 ```
@@ -370,6 +488,37 @@ output_png = 'results/plots/new_oil_palm_nonforest.png'
 
 process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
 ```
+
+
+
+## 3.6	How much new oil palm plantations occurred yearly on primary forest (2000 - 2017)?
+
+### 3.6.1 mask
+
+```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2001_2017.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+output_tif = '../../08_data_processed/combined/new_oil_palm_primary.tif'
+
+mask_values = [1]
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=False)
+```
+
+### 3.6.2 calculate
+```{python}
+title = 'new palm oil plantations on yprimary forest'
+input_tif = '../../08_data_processed/combined/new_oil_palm_primary.tif'
+output_csv = 'results/tables/new_oil_palm_primary.csv'
+output_png = 'results/plots/new_oil_palm_primary.png'
+
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+
+
+
+
 
 
 ## 3.6	How much new oil palm plantation area occured on previos cropland (and other way around)?
@@ -638,7 +787,7 @@ process_multiple_rasters_to_csv_and_plot(title, input_tifs, output_csv, output_p
 
 ## 4.0 preparations
 
-### 4.0.1 buffer total build up area
+### 4.0.1.1 buffer total build up area
 ```{python}
 
 input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
@@ -648,6 +797,80 @@ buffer_distances = [100,200,500,1000,2000]
 for buffer_distance in buffer_distances:
     buffer_tif(input_tif, buffer_distance, output_tif.replace("bufferdistance", str(buffer_distance)))
 ```
+
+#  4.0.1.2 retrieve areas of buffer
+```{python}
+buffer_distances = [100, 200, 500, 1000, 2000]
+
+shapefile = "../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp"
+
+# Initialize an empty list to store the total buffer areas
+buffer_areas_total_built_up = []
+
+for buffer_distance in buffer_distances:
+    tif_basic_name = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_build_up_area.tif'
+
+    input_tif = tif_basic_name.replace("bufferdistance", str(buffer_distance))
+    print(input_tif)
+
+    output_tif = input_tif.replace('LAEA_', 'LAEA_mask_')
+    mask_tif_with_shapefile(input_tif, shapefile, output_tif, nodata_value=None)
+    print(output_tif)
+    # Use the output path as input in the get_tif_area function
+    area = get_tif_area(output_tif)
+    
+    # Append the returned value to the buffer_areas_total list
+    buffer_areas_total_built_up.append(area)
+
+
+
+
+# Create a DataFrame
+df = pd.DataFrame(buffer_areas_total_built_up, columns=['buffer_areas_total_built_up'])
+
+# Export to CSV
+df.to_csv('results/tables/buffer_areas_total_built_up.csv', index=False)
+
+```
+
+#  4.0.1.3 mask areas with primary forest
+
+```{python}
+buffer_distances = [100, 200, 500, 1000, 2000]
+
+mask_tif = "../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif"
+
+# Initialize an empty list to store the primary forest buffer areas
+buffer_areas_primary_built_up = []
+
+for buffer_distance in buffer_distances:
+    tif_basic_name = '../../07_data_prepared/infrastructure/LAEA_mask_buffer_bufferdistance_build_up_area.tif'
+
+    input_tif = tif_basic_name.replace("bufferdistance", str(buffer_distance))
+    print(input_tif)
+
+    output_tif = input_tif.replace('mask_', 'mask_primary_')
+    mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
+    print(output_tif)
+    # Use the output path as input in the get_tif_area function
+    area = get_tif_area(output_tif)
+    
+    # Append the returned value to the buffer_areas_total list
+    buffer_areas_primary_built_up.append(area)
+
+
+
+# Create a DataFrame
+df = pd.DataFrame(buffer_areas_primary_built_up, columns=['buffer_areas_primary_built_up'])
+
+# Export to CSV
+df.to_csv('results/tables/buffer_areas_primary_built_up.csv', index=False)
+```
+
+
+
+
+
 
 ### 4.0.2 buffer year 2000 build up area
 
@@ -665,17 +888,86 @@ reclassify(input_tif, output_tif, reclassify_values)
 ```{python}
 input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area_2000.tif'
 output_tif = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_build_up_area_2000.tif'
-buffer_distances = [100,200,500,1000,2000]
+buffer_distances = [200, 500, 1000, 2000]
 
 for buffer_distance in buffer_distances:
     buffer_tif(input_tif, buffer_distance, output_tif.replace("bufferdistance", str(buffer_distance)))
 ```
 
+
+```{python}
+buffer_distances = [100, 200, 500, 1000, 2000]
+
+shapefile = "../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp"
+
+# Initialize an empty list to store the total buffer areas
+buffer_areas_built_up_2000 = []
+
+for buffer_distance in buffer_distances:
+    tif_basic_name = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_build_up_area_2000.tif'
+
+    input_tif = tif_basic_name.replace("bufferdistance", str(buffer_distance))
+    print(input_tif)
+
+    output_tif = input_tif.replace('LAEA_', 'LAEA_mask_')
+    mask_tif_with_shapefile(input_tif, shapefile, output_tif, nodata_value=None)
+    print(output_tif)
+    # Use the output path as input in the get_tif_area function
+    area = get_tif_area(output_tif)
+    
+    # Append the returned value to the buffer_areas_total list
+    buffer_areas_built_up_2000.append(area)
+
+
+# Create a DataFrame
+df = pd.DataFrame(buffer_areas_built_up_2000, columns=['buffer_areas_built_up_2000'])
+
+# Export to CSV
+df.to_csv('results/tables/buffer_areas_built_up_2000.csv', index=False)
+
+```
+
+#  4.0.2.3 mask areas with primary forest
+
+```{python}
+buffer_distances = [100, 200, 500, 1000, 2000]
+
+mask_tif = "../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif"
+
+# Initialize an empty list to store the primary forest buffer areas
+buffer_areas_primary_built_up_2000 = []
+
+for buffer_distance in buffer_distances:
+    tif_basic_name = '../../07_data_prepared/infrastructure/LAEA_mask_buffer_bufferdistance_build_up_area_2000.tif'
+
+    input_tif = tif_basic_name.replace("bufferdistance", str(buffer_distance))
+    print(input_tif)
+
+    output_tif = input_tif.replace('mask_', 'mask_primary_')
+    mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
+    print(output_tif)
+    # Use the output path as input in the get_tif_area function
+    area = get_tif_area(output_tif)
+    
+    # Append the returned value to the buffer_areas_total list
+    buffer_areas_primary_built_up_2000.append(area)
+
+
+
+
+# Create a DataFrame
+df = pd.DataFrame(buffer_areas_primary_built_up_2000, columns=['buffer_areas_primary_built_up_2000'])
+
+# Export to CSV
+df.to_csv('results/tables/buffer_areas_primary_built_up_2000.csv', index=False)
+```
+
+
 ### 4.0.3 buffer new build up area
 #### 4.0.3.1 reclassify to exclusiveley new build up area 2000-2020
 ```{python}
 input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
-output_tif ='../../07_data_prepared/infrastructure/LAEA_new_build_up_area_2020.tif'
+output_tif ='../../07_data_prepared/infrastructure/LAEA_new_build_up_area.tif'
 
 reclassify_values = {0: [2]}
 
@@ -684,13 +976,80 @@ reclassify(input_tif, output_tif, reclassify_values)
 
 #### 4.0.3.2 buffer
 ```{python}
-input_tif = '../../07_data_prepared/infrastructure/LAEA_new_build_up_area_2020.tif'
-output_tif = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_new_build_up_area_2000.tif'
+input_tif = '../../07_data_prepared/infrastructure/LAEA_new_build_up_area.tif'
+output_tif = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_new_build_up_area.tif'
 buffer_distances = [100,200,500,1000,2000]
 
 for buffer_distance in buffer_distances:
     buffer_tif(input_tif, buffer_distance, output_tif.replace("bufferdistance", str(buffer_distance)))
 ```
+
+```{python}
+buffer_distances = [100, 200, 500, 1000, 2000]
+
+shapefile = "../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp"
+
+# Initialize an empty list to store the total buffer areas
+buffer_areas_new_built_up = []
+
+for buffer_distance in buffer_distances:
+    tif_basic_name = '../../07_data_prepared/infrastructure/LAEA_buffer_bufferdistance_new_build_up_area.tif'
+
+    input_tif = tif_basic_name.replace("bufferdistance", str(buffer_distance))
+    print(input_tif)
+
+    output_tif = input_tif.replace('LAEA_', 'LAEA_mask_')
+    mask_tif_with_shapefile(input_tif, shapefile, output_tif, nodata_value=None)
+    print(output_tif)
+    # Use the output path as input in the get_tif_area function
+    area = get_tif_area(output_tif)
+    
+    # Append the returned value to the buffer_areas_total list
+    buffer_areas_new_built_up.append(area)
+
+
+# Create a DataFrame
+df = pd.DataFrame(buffer_areas_primary_new_built_up, columns=['buffer_areas_new_built_up'])
+
+# Export to CSV
+df.to_csv('results/tables/buffer_areas_new_built_up.csv', index=False)
+
+
+```
+
+# primary
+```{python}
+buffer_distances = [100, 200, 500, 1000, 2000]
+
+mask_tif = "../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif"
+
+# Initialize an empty list to store the primary forest buffer areas
+buffer_areas_primary_new_built_up = []
+
+for buffer_distance in buffer_distances:
+    tif_basic_name = '../../07_data_prepared/infrastructure/LAEA_mask_buffer_bufferdistance_build_up_area.tif'
+
+    input_tif = tif_basic_name.replace("bufferdistance", str(buffer_distance))
+    print(input_tif)
+
+    output_tif = input_tif.replace('mask_', 'mask_primary_')
+    mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
+    print(output_tif)
+    # Use the output path as input in the get_tif_area function
+    area = get_tif_area(output_tif)
+    
+    # Append the returned value to the buffer_areas_total list
+    buffer_areas_primary_new_built_up.append(area)
+
+
+
+# Create a DataFrame
+df = pd.DataFrame(buffer_areas_primary_new_built_up, columns=['buffer_areas_primary_new_built_up'])
+
+# Export to CSV
+df.to_csv('results/tables/buffer_areas_primary_new_built_up.csv', index=False)
+```
+
 
 ### 4.0.4 limit gfc data to the span of 2000 to 2020
 
@@ -731,7 +1090,7 @@ process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png,  show_s
 ## 2 is in year 2000 and 1 is additional build up area
 ```
 
-## 4.2 How much forest loss areas occured on new build up area (yearly)?
+## 4.2a How much forest loss areas occured on build up area (yearly)?
 
 ### 4.2.1 mask forest loss with new build up areas
 ```{python}
@@ -743,7 +1102,17 @@ output_tif = '../../08_data_processed/combined/deforestation_new_build_up_area.t
 mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
 ```
 
-### 4.2.2 calculation
+### 4.2.1 mask forest loss with build up areas 2000
+```{python}
+
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2001_2020_borneo.tif'
+mask_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+output_tif = '../../08_data_processed/combined/deforestation_build_up_area_2000.tif'
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [2])
+```
+
+### 4.2.2 calculation new built up
 ```{python}
 ## Set variables for the title and paths
 title = 'Borneo Forest Loss to new build up areas 2001 - 2021'
@@ -751,19 +1120,75 @@ input_tif = '../../08_data_processed/combined/deforestation_new_build_up_area.ti
 output_csv = 'results/tables/forest_loss_new_build_up_areas_yearly.csv'
 output_png = 'results/plots/forest_loss_new_build_up_areas_yearly.png'
 
+# Call the function with youvariables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png) 
+```
+
+### 4.2.2 calculation built up 2000
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Forest Loss on built up areas 2000'
+input_tif = '../../08_data_processed/combined/deforestation_build_up_area_2000.tif'
+output_csv = 'results/tables/forest_loss_build_up_areas_2000_yearly.csv'
+output_png = 'results/plots/forest_loss_build_up_areas_2000_yearly.png'
+
+# Call the function with youvariables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+
+## 4.2b How much primiary forest loss areas occured on build up area (yearly)?
+
+### 4.2.1 mask forest loss with new build up areas
+```{python}
+
+input_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
+mask_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+output_tif = '../../08_data_processed/combined/deforestation_primary_new_build_up_area.tif'
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
+```
+
+```{python}
+
+input_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
+mask_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+output_tif = '../../08_data_processed/combined/deforestation_primary_build_up_area_2000.tif'
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [2])
+```
+
+### 4.2.2 calculation
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Primary Forest Loss to new build up areas 2001 - 2021'
+input_tif = '../../08_data_processed/combined/deforestation_primary_new_build_up_area.tif'
+output_csv = 'results/tables/primary_forest_loss_new_build_up_areas_yearly.csv'
+output_png = 'results/plots/primary_forest_loss_new_build_up_areas_yearly.png'
+
 # Call the function with your variables
 process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
 ```
 
-## 4.3 How much new build up area occured in non-forest covered area (2020 compared to 2000)?
+```{python}
+## Set variables for the title and paths
+title = 'Borneo Primary Forest Loss to build up areas 2000'
+input_tif = '../../08_data_processed/combined/deforestation_primary_build_up_area_2000.tif'
+output_csv = 'results/tables/primary_forest_loss_build_up_areas_2000_yearly.csv'
+output_png = 'results/plots/primary_forest_loss_new_build_up_areas_2000_yearly.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+
+## 4.3a How much new build up area occured in non-forest covered area (2020 compared to 2000)?
 
 ### 4.3.1 Mask
 ```{python}
 input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
-mask_tif = '../../07_data_prepared/deforestation/LAEA_gfw_fcover_2000_borneo.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
 output_tif = '../../08_data_processed/combined/build_up_area_non_forest.tif'
 
-mask_values = list(range(51,101))
+mask_values = [1]
 
 mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=True)
 ```
@@ -792,6 +1217,42 @@ process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_su
 ## 2 is in year 2000 and 1 is additional build up area
 ```
 
+## 4.3b How much new build up area occured in primary forest covered area (2020 compared to 2000)?
+
+### 4.3.1 Mask
+```{python}
+input_tif = '../../07_data_prepared/infrastructure/LAEA_build_up_area.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif'
+output_tif = '../../08_data_processed/combined/build_up_area_non_forest.tif'
+
+mask_values = [1]
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=True)
+```
+
+### 4.3.2 Reclassify to only 0 values
+
+```{python}
+reclassify_values = {0: [255]}
+
+input_file = '../../08_data_processed/combined/build_up_area_non_forest.tif'
+output_file = '../../08_data_processed/combined/build_up_area_non_forest.tif'
+
+reclassify(input_file, output_file, reclassify_values)
+```
+
+### 4.3.2 calculate
+```{python}
+## Set variables for the title and paths
+title = 'Borneo new build up areas on non forest areas from 2000-2020'
+input_tif = '../../08_data_processed/combined/build_up_area_non_forest.tif'
+output_csv = 'results/tables/build_up_area_non_forest.csv'
+output_png = 'results/plots/build_up_area_non_forest.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
+```
 
 
 ## 4.4 How much new build up areas was created on forest-fire loss areas (2020 compared to 2000)?
@@ -888,6 +1349,9 @@ for x_value in x:
 ```
 
 
+
+
+
 ## 4.7	How much deforestation (excluding forest fires) area occured within 0.1, 0.2, 0.5, 1, and 2 km of year 2000, new_build up and total build up areas?
 
 ```{python}
@@ -921,6 +1385,78 @@ for x_value in x:
 
 
 ```
+
+
+# 4.6b and 4.7b both for primary forests
+
+```{python}
+import os
+
+def find_files(root_folder):
+    files_list = []
+    for root, dirs, files in os.walk(root_folder):
+        for file in files:
+            files_list.append(os.path.join(root, file))
+    return files_list
+
+root_folder = '../../08_data_processed/buffer_deforestation_no_forest_fires' 
+files = find_files(root_folder)
+
+
+mask_tif_path = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+
+for file in files:
+    output_tif_path = file.replace('../../08_data_processed/buffer_deforestation_no_forest_fires/deforestation_no_forest_fires_buffer_', '../../08_data_processed/buffer_primary_deforestation_no_forest_fires/primary_no_forest_fires_buffer_')
+    mask_tif_select_value(file, mask_tif_path, output_tif_path, mask_values=[1])
+    
+    print(output_tif_path)
+    title = ''
+    input_tif = output_tif_path
+    output_csv = output_tif_path.replace('../../08_data_processed/buffer_primary_deforestation_no_forest_fires/primary_no_forest_fires_buffer_', 'results/tables/primary_no_forest_fires_buffer_')
+    output_csv = output_csv.replace('.tif', '.csv')
+
+
+    output_png = output_tif_path.replace('../../08_data_processed/buffer_primary_deforestation_no_forest_fires/primary_no_forest_fires_buffer_', 'results/plots/primary_no_forest_fires_buffer_')
+    output_png = output_png.replace('.tif', '.png')
+
+    process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+
+
+
+```{python}
+import os
+
+def find_files(root_folder):
+    files_list = []
+    for root, dirs, files in os.walk(root_folder):
+        for file in files:
+            files_list.append(os.path.join(root, file))
+    return files_list
+
+root_folder = '../../08_data_processed/buffer_forest_fires' 
+files = find_files(root_folder)
+
+
+mask_tif_path = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+
+for file in files:
+    output_tif_path = file.replace('../../08_data_processed/buffer_forest_fires/forest_fires_buffer_', '../../08_data_processed/buffer_primary_forest_fires/primary_forest_fires_buffer_')
+    mask_tif_select_value(file, mask_tif_path, output_tif_path, mask_values=[1])
+    
+    print(output_tif_path)
+    title = ''
+    input_tif = output_tif_path
+    output_csv = output_tif_path.replace('../../08_data_processed/buffer_primary_forest_fires/primary_forest_fires_buffer_', 'results/tables/primary_forest_fires_buffer_')
+    output_csv = output_csv.replace('.tif', '.csv')
+
+
+    output_png = output_tif_path.replace('../../08_data_processed/buffer_primary_forest_fires/primary_forest_fires_buffer_', 'results/plots/primary_forest_fires_buffer_')
+    output_png = output_png.replace('.tif', '.png')
+
+    process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png)
+```
+
 
 # 5 RSPO
 

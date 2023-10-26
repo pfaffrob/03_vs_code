@@ -1,0 +1,73 @@
+
+```{python}
+from my_functions import *
+```
+
+```{python}
+def reproject_raster(epsg, input_file_path, output_file_path, nodata_value=0):
+    #open source raster
+    srcRst = rasterio.open(input_file_path)
+
+    dstCrs = 'EPSG:' + epsg
+
+    #calculate transform array and shape of reprojected raster
+    transform, width, height = calculate_default_transform(
+            srcRst.crs, dstCrs, srcRst.width, srcRst.height, *srcRst.bounds)
+
+    #working of the meta for the destination raster
+    kwargs = srcRst.meta.copy()
+    kwargs.update({
+            'crs': dstCrs,
+            'transform': transform,
+            'width': width,
+            'height': height,
+            'compress': 'lzw',
+            'nodata': nodata_value
+        })
+
+    #open destination raster
+    dstRst = rasterio.open(output_file_path, 'w', **kwargs)
+
+    #reproject and save raster band data
+    for i in range(1, srcRst.count + 1):
+        reproject(
+            source=rasterio.band(srcRst, i),
+            destination=rasterio.band(dstRst, i),
+            #src_transform=srcRst.transform,
+            src_crs=srcRst.crs,
+            #dst_transform=transform,
+            dst_crs=dstCrs,
+            resampling=Resampling.nearest)
+    #close destination raster
+    dstRst.close()
+
+
+epsg = '4326'
+input_file_path = '../../07_data_prepared/deforestation/LAEA_forest_cover_year_2000_and_primary.tif'
+output_file_path = '../../10_reprojection/forest_cover_year_2000_and_primary.tif'
+
+reproject_raster(epsg, input_file_path, output_file_path)
+
+input_file_path = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+output_file_path = '../../10_reprojection/gfw_2000_2022_borneo.tif'
+reproject_raster(epsg, input_file_path, output_file_path)
+```
+
+
+```{python}
+from osgeo import gdal
+def get_nodata_value(tif_path):
+    # Open the dataset
+    dataset = gdal.Open(tif_path)
+
+    # Get the raster band 1
+    band = dataset.GetRasterBand(1)
+
+    # Get the NoData value
+    nodata_value = band.GetNoDataValue()
+
+    print(nodata_value)
+
+get_nodata_value(output_file_path)
+
+```

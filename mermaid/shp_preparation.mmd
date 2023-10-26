@@ -1,16 +1,19 @@
 stateDiagram
     direction LR
     A: input shp
+    B: Borneo boundary
     D: clip to boundary
     G: output <i>.shp</i>
     H: <center>reproject\n<small><sub>Lambert Azimuthal Equal Area</sub></small></center>
     I: LAEA output <i>.shp</i>
     A --> D
+    B --> D
     D --> G
     G --> H
     H --> I
 
 class A file
+class B file
 class D process
 class G file
 class H process
