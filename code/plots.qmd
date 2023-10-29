@@ -10,7 +10,7 @@ from matplotlib.ticker import FixedLocator
 ```{python}
 
 grey = "#595857"
-dark_grey = '#383838'
+dark_grey = "#595857"
 red = '#FF0000'
 dark_red = '#8B0000'
 

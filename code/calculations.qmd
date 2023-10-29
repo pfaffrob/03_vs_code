@@ -1832,5 +1832,5 @@ plt.show()
 
 
 
-plt.savefig('results/final_plots/SPAM_crops.png', bbox_inches='tight')
+plt.savefig('results/final_plots/SPAM_crops.png')
 ```

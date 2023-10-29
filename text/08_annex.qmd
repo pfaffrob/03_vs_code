@@ -174,7 +174,7 @@ These are the harvest areas of shrubby plants given in the crop type datasets, t
 ![](../code/results/final_plots/new_oil_palm_after_forest_fires.png){#fig-mapdeforestation width="50%"}
 \normalcolor
 
-This figure shows, that clearing land with fires occurs rarely.
+This figure shows, that clearing land for oil palm with fires occurs rarely.
 
 \newpage
 

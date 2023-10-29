@@ -1030,7 +1030,7 @@ figsize = (6, 5)
 
 # Define the data and labels for the first pie chart
 build_up_sums = [non_forest_new, forest_non_primary_new, sum_primary_forest_loss_new_build_up]
-labels = ['no forest \n loss', 'other \n forest loss', 'primary \n forest loss']
+labels = ['no forest \n loss', 'secondary \n forest loss', 'primary \n forest loss']
 colors = [dark_red, '#a30202', red]
 
 # Create the first pie chart
@@ -1047,7 +1047,7 @@ for i, (patch, label) in enumerate(zip(patches, labels)):
 # Add a text box to the first pie chart
 ax_text1 = fig1.add_axes([0.5, 0.1, 0.1, 0.1])
 ax_text1.axis('off')
-ax_text1.text(0.2, 0.2, 'New built-up area (2001 - 2020): {:.0f} km²'.format(new_build_up_total / 100), horizontalalignment='center', verticalalignment='center', fontweight='bold', transform=ax_text1.transAxes)
+ax_text1.text(0.2, 0.2, 'New built up area (2001 - 2020): {:.0f} km²'.format(new_build_up_total / 100), horizontalalignment='center', verticalalignment='center', fontweight='bold', transform=ax_text1.transAxes)
 
 # Save the first figure
 fig1.savefig('results/final_plots/pie_new_built_up.png', dpi=120, bbox_inches='tight')
@@ -1069,7 +1069,7 @@ for i, (patch, label) in enumerate(zip(patches, labels)):
 # Add a text box to the second pie chart
 ax_text2 = fig2.add_axes([0.5, 0.1, 0.1, 0.1])
 ax_text2.axis('off')
-ax_text2.text(0.5, 0.2, 'Built-up area in 2000: {:.0f} km²'.format(existing_build_up_total / 100), horizontalalignment='center', verticalalignment='center', fontweight='bold', transform=ax_text2.transAxes)
+ax_text2.text(0.5, 0.2, 'Built up area in 2000: {:.0f} km²'.format(existing_build_up_total / 100), horizontalalignment='center', verticalalignment='center', fontweight='bold', transform=ax_text2.transAxes)
 
 # Save the second figure
 fig2.savefig('results/final_plots/pie_existing_built_up.png', dpi=120, bbox_inches='tight')
