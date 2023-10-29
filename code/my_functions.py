@@ -429,6 +429,22 @@ def mask_tif_with_shapefile_select_feature_value(input_tif, shapefile, output_ti
             dest.write(out_image)
 
 
+def calculate_shapefile_area(shapefile_path, field_name = None, field_value = None):
+    # Read the shapefile
+    gdf = gpd.read_file(shapefile_path)
+
+    # Filter the GeoDataFrame
+    if field_name:
+        gdf = gdf[gdf[field_name] == field_value]
+
+    # Calculate the total area
+    total_area = gdf.geometry.area.sum()
+
+    return total_area
+
+
+
+
 def mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside=False, nodata_value=None):
     with rasterio.open(input_tif) as src:
         with rasterio.open(mask_tif) as mask:

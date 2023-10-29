@@ -96,23 +96,9 @@ process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_su
 
 # PA Sum
 ```{python}
-import geopandas as gpd
-
-def calculate_shapefile_area(shapefile_path):
-
-
-    # Read the shapefile
-    gdf = gpd.read_file(shapefile_path)
-
-    # Calculate the total area
-    total_area = gdf.geometry.area.sum()
-
-    return total_area
-
 # Example usage:
 shapefile_path = '../../07_data_prepared/protected_areas/LAEA_protected_areas_borneo.shp'
 area = calculate_shapefile_area(shapefile_path)
-print(f'Total area of the shapefile: {area} square units')
 
 ```
 
@@ -343,6 +329,17 @@ mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = Tru
 
 ```
 
+
+```{python}
+input_tif = '../../08_data_processed/deforestation/deforestation_primary_forest.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
+output_tif = '../../08_data_processed/combined/deforestation_primary_forest_forest_fires.tif'
+mask_values = list(range(1, 22))
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = True)
+
+```
+
 ### 2.4.2 mask deforestation excluding forest fires with protected areas
 ```{python}
 input_tif = '../../08_data_processed/combined/deforestation_primary_forest_no_forest_fires.tif'
@@ -546,7 +543,8 @@ spam_names = [
     "RCOF",
     "BANP",
     "BANA",
-    "VEGE"
+    "VEGE",
+    ""
 ]
 
 # Define the root folders and the number of top rows for each year
@@ -683,12 +681,12 @@ def mask_with_multiple(mask_files, input_tif, output_tif):
 
 
 ```{python}
-mask_tifs = ['/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif']
+mask_tifs = ['../../07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif']
 
-input_tif = '/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
+input_tif = '../../07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif'
 
 output_tif = '../../08_data_processed/cropland/test.tif'
 
@@ -718,10 +716,10 @@ mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values= [1])
 ```
 
 ```{python}
-tif_files = ['/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif']
+tif_files = ['../../07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif']
 
 output_file = '../../08_data_processed/cropland/cropland_03_07_11_15.tif'
 
@@ -772,17 +770,63 @@ def process_rasters_to_csv_and_plot(title, input_tifs, output_csv, output_png):
 ```
 
 ```{python}
-input_tifs = ['/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif',
-'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/cropland/LAEA_borneo_cropland_2019.tif']
+input_tifs = ['../../07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2019.tif']
 
 output_csv = 'results/tables/croplands.csv'
 output_png = 'results/plots/croplands.png'
 title = 'croplland extent'
-process_multiple_rasters_to_csv_and_plot(title, input_tifs, output_csv, output_png)
+process_rasters_to_csv_and_plot(title, input_tifs, output_csv, output_png)
 ```
+
+```{python}
+
+input_tifs = ['../../07_data_prepared/cropland/LAEA_borneo_cropland_2003.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2007.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2011.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2015.tif',
+'../../07_data_prepared/cropland/LAEA_borneo_cropland_2019.tif']
+
+output_tifs = ['../../08_data_processed/combined/LAEA_borneo_cropland_2003_deforestation.tif',
+'../../08_data_processed/combined//LAEA_borneo_cropland_2007_deforestation.tif',
+'../../08_data_processed/combined//LAEA_borneo_cropland_2011_deforestation.tif',
+'../../08_data_processed/combined//LAEA_borneo_cropland_2015_deforestation.tif',
+'../../08_data_processed/combined//LAEA_borneo_cropland_2019_deforestation.tif']
+
+
+mask_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+
+range_list = [3,7,11,15,19]
+
+
+
+for i in range(len(input_tifs)):
+    input_tif = input_tifs[i]
+    output_tif = output_tifs[i]
+    mask_values = list(range(1, range_list[i]+1))
+    mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values)
+
+```
+
+```{python}
+input_tifs = ['../../08_data_processed/combined/LAEA_borneo_cropland_2003_deforestation.tif',
+'../../08_data_processed/combined//LAEA_borneo_cropland_2007_deforestation.tif',
+'../../08_data_processed/combined//LAEA_borneo_cropland_2011_deforestation.tif',
+'../../08_data_processed/combined//LAEA_borneo_cropland_2015_deforestation.tif',
+'../../08_data_processed/combined//LAEA_borneo_cropland_2019_deforestation.tif']
+
+
+output_csv = 'results/tables/croplands_deforestation.csv'
+output_png = 'results/plots/croplands_deforestation.png'
+title = 'cropland deforestation'
+process_rasters_to_csv_and_plot(title, input_tifs, output_csv, output_png)
+```
+
+
+
 # 4 build up area
 
 ## 4.0 preparations
@@ -1459,6 +1503,113 @@ for file in files:
 
 
 # 5 RSPO
+## 5.0 Area of RSPO certifications
+
+```{python}
+shapefile_path = '../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp'
+area_certified = calculate_shapefile_area(shapefile_path, field_name = 'RSPOCert', field_value = 'Certified') / 10000
+```
+
+```{python}
+shapefile_path = '../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp'
+area_uncertified = calculate_shapefile_area(shapefile_path, field_name = 'RSPOCert', field_value = 'Uncertified') / 10000
+```
+
+
+### share of primary and secondary forest in certificatioins
+
+#### certified
+
+```{python}
+
+input_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+mask_shp = '../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp'
+output_tif = '../../08_data_processed/combined/primary_in_RSPO_certified_regions.tif'
+
+mask_tif_with_shapefile_select_feature_value(input_tif, mask_shp, output_tif, feature_name="RSPOCert", feature_value="Certified")
+```
+
+```{python}
+## Set variables for the title and paths
+title = 'Primary within RSPO certified concessions'
+input_tif = '../../08_data_processed/combined/primary_in_RSPO_certified_regions.tif'
+output_csv = 'results/tables/primary_in_RSPO_certified_regions.csv'
+output_png = 'results/plots/primary_in_RSPO_certified_regions.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
+
+```
+
+```{python}
+
+input_tif = '../../08_data_processed/combined/secondary_forest.tif'
+mask_shp = '../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp'
+output_tif = '../../08_data_processed/combined/secondary_in_RSPO_certified_regions.tif'
+
+mask_tif_with_shapefile_select_feature_value(input_tif, mask_shp, output_tif, feature_name="RSPOCert", feature_value="Certified")
+```
+
+```{python}
+## Set variables for the title and paths
+title = 'Secondary within RSPO certified concessions'
+input_tif = '../../08_data_processed/combined/secondary_in_RSPO_certified_regions.tif'
+output_csv = 'results/tables/secondary_in_RSPO_certified_regions.csv'
+output_png = 'results/plots/secondary_in_RSPO_certified_regions.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
+
+```
+
+#### uncertified
+
+```{python}
+
+input_tif = '../../07_data_prepared/deforestation/LAEA_primary_forest_2001.tif'
+mask_shp = '../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp'
+output_tif = '../../08_data_processed/combined/primary_in_RSPO_uncertified_regions.tif'
+
+mask_tif_with_shapefile_select_feature_value(input_tif, mask_shp, output_tif, feature_name="RSPOCert", feature_value="Uncertified")
+```
+
+```{python}
+## Set variables for the title and paths
+title = 'Primary within RSPO uncertified concessions'
+input_tif = '../../08_data_processed/combined/primary_in_RSPO_uncertified_regions.tif'
+output_csv = 'results/tables/primary_in_RSPO_uncertified_regions.csv'
+output_png = 'results/plots/primary_in_RSPO_uncertified_regions.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
+
+```
+
+```{python}
+
+input_tif = '../../08_data_processed/combined/secondary_forest.tif'
+mask_shp = '../../07_data_prepared/RSPO/LAEA_RSPO_2023.shp'
+output_tif = '../../08_data_processed/combined/secondary_in_RSPO_uncertified_regions.tif'
+
+mask_tif_with_shapefile_select_feature_value(input_tif, mask_shp, output_tif, feature_name="RSPOCert", feature_value="Uncertified")
+```
+
+```{python}
+## Set variables for the title and paths
+title = 'Secondary within RSPO uncertified concessions'
+input_tif = '../../08_data_processed/combined/secondary_in_RSPO_uncertified_regions.tif'
+output_csv = 'results/tables/secondary_in_RSPO_uncertified_regions.csv'
+output_png = 'results/plots/secondary_in_RSPO_uncertified_regions.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+## 2 is in year 2000 and 1 is additional build up area
+
+```
+
 
 
 ## 5.1 in RSPO certified concessions
@@ -1470,6 +1621,8 @@ output_tif = '../../08_data_processed/combined/oil_palm_in_RSPO_certified_region
 
 mask_tif_with_shapefile_select_feature_value(input_tif, mask_shp, output_tif, feature_name="RSPOCert", feature_value="Certified")
 ```
+
+
 
 ```{python}
 ## Set variables for the title and paths
@@ -1504,4 +1657,180 @@ output_png = 'results/plots/oil_palm_in_RSPO_uncertified_regions.png'
 # Call the function with your variables
 process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
 ## 2 is in year 2000 and 1 is additional build up area
+```
+
+## OP in malaysia
+```{python}
+input_tif = '../../07_data_prepared/oil_palm/LAEA_detection_year_2000_2017.tif'
+mask_shp = '../../07_data_prepared/boundary/malaysia_boundary_LAEA.shp'
+output_tif = '../../08_data_processed/combined/new_op_malaysia.tif'
+
+mask_tif_with_shapefile(input_tif, mask_shp, output_tif)
+```
+
+
+```{python}
+## Set variables for the title and paths
+title = 'Oil palm detection year within Malaysia'
+input_tif = '../../08_data_processed/combined/new_op_malaysia.tif'
+output_csv = 'results/tables/new_op_malaysia.csv'
+output_png = 'results/plots/new_op_malaysia.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+## forest loss in RSPO certified primary
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+mask_tif = '../../08_data_processed/combined/primary_in_RSPO_certified_regions.tif'
+output_tif = '../../08_data_processed/combined/RSPO_primary_forest_loss.tif'
+mask_values = [1]
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = False)
+```
+
+
+```{python}
+## Set variables for the title and paths
+title = 'Primary forest loss in RSPO certified'
+input_tif = '../../08_data_processed/combined/RSPO_primary_forest_loss.tif'
+output_csv = 'results/tables/RSPO_primary_forest_loss.csv'
+output_png = 'results/plots/RSPO_primary_forest_loss.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+## forest loss in RSPO certified secondary
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+mask_tif = '../../08_data_processed/combined/secondary_in_RSPO_certified_regions.tif'
+output_tif = '../../08_data_processed/combined/RSPO_secondary_forest_loss.tif'
+mask_values = [1]
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = False)
+```
+
+
+```{python}
+## Set variables for the title and paths
+title = 'Secondary forest loss in RSPO certified'
+input_tif = '../../08_data_processed/combined/RSPO_secondary_forest_loss.tif'
+output_csv = 'results/tables/RSPO_secondary_forest_loss.csv'
+output_png = 'results/plots/RSPO_secondary_forest_loss.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+## forest loss in RSPO certified primary
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+mask_tif = '../../08_data_processed/combined/primary_in_RSPO_uncertified_regions.tif'
+output_tif = '../../08_data_processed/combined/RSPO_primary_forest_loss_uncertified.tif'
+mask_values = [1]
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = False)
+```
+
+
+```{python}
+## Set variables for the title and paths
+title = 'Primary forest loss in RSPO uncertified'
+input_tif = '../../08_data_processed/combined/RSPO_primary_forest_loss_uncertified.tif'
+output_csv = 'results/tables/RSPO_primary_forest_loss_uncertified.csv'
+output_png = 'results/plots/RSPO_primary_forest_loss_uncertified.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+## forest loss in RSPO certified secondary
+```{python}
+input_tif = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
+mask_tif = '../../08_data_processed/combined/secondary_in_RSPO_uncertified_regions.tif'
+output_tif = '../../08_data_processed/combined/RSPO_secondary_forest_loss_uncertified.tif'
+mask_values = [1]
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = False)
+```
+
+
+```{python}
+## Set variables for the title and paths
+title = 'Secondary forest loss in RSPO uncertified'
+input_tif = '../../08_data_processed/combined/RSPO_secondary_forest_loss_uncertified.tif'
+output_csv = 'results/tables/RSPO_secondary_forest_loss_uncertified.csv'
+output_png = 'results/plots/RSPO_secondary_forest_loss_uncertified.png'
+
+# Call the function with your variables
+process_raster_to_csv_and_plot(title, input_tif, output_csv, output_png, show_sum = True)
+```
+
+
+```{python}
+
+input_tif = '../../08_data_processed/combined/secondary_forest.tif'
+mask_tif = '../../07_data_prepared/deforestation/LAEA_forest_fires.tif'
+output_tif = '../../08_data_processed/combined/deforestation_secondary_forest_forest_fires.tif'
+mask_values = list(range(1, 22))
+
+mask_tif_select_value(input_tif, mask_tif, output_tif, mask_values, inside = True)
+
+
+```
+
+
+
+```{python}
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
+# Daten erstellen
+data = {
+    'paths': ['Rice', 'Maize', 'Coffee', 'Cassava', 'Banana', 'Groundnut', 'Soybean', 'Vegetabes', 'Other Oil'],
+    '2000': [845096, 71826, 69038, 60075, 28827, 22347, 16552, None, None],
+    '2005': [693625, 69876, 64004, 40199, 19330, 19258, 6764, 66130, 70825],
+    '2010': [487506, 53694, 29116, 11468, None, 2745, 452, 22458, 71045]
+}
+
+df = pd.DataFrame(data)
+
+# Daten für das Diagramm vorbereiten
+df_melt = df.melt('paths', var_name='Year', value_name='total')
+
+# Diagramm erstellen
+fig, ax = plt.subplots(figsize=(10,6))
+sns.barplot(x='Year', y='total', hue='paths', data=df_melt)
+
+# Achsenbeschriftungen setzen
+ax.set_xlabel('Year')
+ax.set_ylabel('ha')
+
+# Gitterlinien anpassen
+sns.despine(left=True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# y-Achsen-Ticks formatieren
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x)))
+
+# y-Achsen-Limit anpassen
+y_max = df_melt['total'].max()
+ax.set_ylim(0,y_max*1.15)
+
+# x-Achsen-Beschriftungen um 90 Grad drehen
+plt.xticks(rotation=90)
+
+plt.tight_layout()
+plt.show()
+
+
+
+
+plt.savefig('results/final_plots/SPAM_crops.png', bbox_inches='tight')
 ```

@@ -3,7 +3,11 @@
 ::: {#refs}
 :::
 
+\newpage
+
 \listoffigures
+
+\newpage
 
 \listoftables
 
@@ -103,7 +107,7 @@ Representative map extract showing that >75% closed canopy of 2000 mostly covers
 ## \textsc{III} Dense vegetation excluding primary forests {.unnumbered .unlisted}
 
 \color{white}
-[![](../code/results/maps/validation_built_up_deforestation.png){ width=100% align="center"}]
+[![](../code/results/maps/vegetation_oil_palm_00_03.png){ width=100% align="center"}]
 \normalcolor
 
 In the dense vegetation outside of primary forests, lage areas are occupied by oil palm. Oil palm data is limited to years 2000 - 2003 as growing oil palms could alread have a closed canopy of >75% in the year 2000. 
@@ -115,7 +119,7 @@ In the dense vegetation outside of primary forests, lage areas are occupied by o
 [![](../code/results/maps/validation_built_up_deforestation.png){ width=100% align="center"}]
 \normalcolor
 
-Example of deforestation on year 2000 built up area, where, logically, now deforestation should be. Here it is visible, that these areas are mainly located at the edge, where maintenance led to the removal of closeby trees, which were thus classifiead as forest loss.
+Example of deforestation on year 2000 built up area, where, logically, no deforestation should be. Here it is visible, that these areas are mainly located at the edge, where maintenance led to the removal of closeby trees, which were thus classifiead as forest loss.
 \newpage
 
 
@@ -128,7 +132,7 @@ Example of deforestation on year 2000 built up area, where, logically, now defor
 A repeating pattern, with a lot of secondary forest close to rivers, especially with built-up areas nearby.
 \newpage
 
-## \textsc{V} Secondary Forest and proximity to rivers {.unnumbered .unlisted}
+## \textsc{VI} Logging in PAs {.unnumbered .unlisted}
 
 \color{white}
 [![](../code/results/maps/deforestation_protected_areas_other.png){#fig-mappa width="100%"}]
@@ -136,6 +140,45 @@ A repeating pattern, with a lot of secondary forest close to rivers, especially 
 
 An exceptional case of a protected PA where much deforestation takes place. A prominent feature is a new road that cuts through the PA.
 \newpage
+
+## \textsc{VII} Socondary forest loss in RSPO concessions {.unnumbered .unlisted}
+
+
+\color{white}
+
+![](../code/results/plots/RSPO_secondary_forest_loss.png){width="65%"}
+
+
+![](../code/results/plots/RSPO_secondary_forest_loss_uncertified.png){width="65%"}
+
+\normalcolor
+
+Elevated levels of secondary forest loss in RSPO certified concessions and continuous loss in uncertified concessions.
+
+\newpage
+
+## \textsc{VIII} Harvest area SPAM {.unnumbered .unlisted}
+
+\color{white}
+![](../code/results/final_plots/SPAM_crops.png)
+\normalcolor
+
+These are the harvest areas of shrubby plants given in the crop type datasets, that should be in the same range as the croplands, but they exceed those numbers multiple times indicating their unreliabilty. 
+
+\newpage
+
+
+## \textsc{IX} Oill palm after forest fies {.unnumbered .unlisted}
+
+\color{white}
+![](../code/results/final_plots/new_oil_palm_after_forest_fires.png){#fig-mapdeforestation width="50%"}
+\normalcolor
+
+This figure shows, that clearing land with fires occurs rarely.
+
+\newpage
+
+
 
 
 ## \textsc{X} Plagiarism declaration {#sec-annex_x .unnumbered .unlisted}

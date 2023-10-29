@@ -56,7 +56,7 @@ island_no_forest = total_island - primary_forest_sum - non_primary_forest_sum
 forest_sums = [primary_forest_sum, non_primary_forest_sum, island_no_forest]
 
 # Create a list of labels
-labels = ['Primary Forest (2001)', '>= 75% tree cover', '< 75% tree cover']
+labels = ['primary forest (2001)', 'secondary forest', 'non-forest']
 colors = [dark_red, red, grey]
 # Create a figure
 
@@ -156,7 +156,7 @@ merged_df = df_complete_deforestation
 fig, ax = plt.subplots(figsize=(6, 6))
 
 # Use seaborn's barplot function with the specified colors
-sns.barplot(x='Year', y='logging', data=merged_df, label='Logging', alpha=1, ax=ax, color=colors[0], zorder=2)
+sns.barplot(x='Year', y='logging', data=merged_df, label='logging', alpha=1, ax=ax, color=colors[0], zorder=2)
 sns.barplot(x='Year', y='forest fires', data=merged_df, label='forest fires', alpha=1, ax=ax, color=colors[1], zorder=3, bottom=merged_df['logging'])
 ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.1f}'.format(x / 1e6)))
 # Set title and labels
@@ -178,7 +178,7 @@ ax.set_xticklabels(merged_df['Year'], rotation=90)
 
 # Show the plot
 legend = plt.legend(loc='upper left')
-legend.get_texts()[0].set_text('Logging')
+legend.get_texts()[0].set_text('logging')
 legend.get_texts()[1].set_text('forest fires')
 
 # Calculate the sum of the 'logging' column
@@ -268,7 +268,7 @@ fig, ax = plt.subplots(figsize=(6, 6))
 
 # Use seaborn's barplot function with the specified colors
 sns.barplot(x='Year', y='forest fires', data=merged_df, label='forest fires', alpha=1, ax=ax, color=colors[1], zorder=3, bottom=merged_df['logging'])
-sns.barplot(x='Year', y='logging', data=merged_df, label='Logging', alpha=1, ax=ax, color=colors[0], zorder=2)
+sns.barplot(x='Year', y='logging', data=merged_df, label='logging', alpha=1, ax=ax, color=colors[0], zorder=2)
 
 ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x / 1e6)))
 # Set title and labels
@@ -347,7 +347,7 @@ merged_df['Year'] = merged_df['Year'] + 2000
 fig, ax = plt.subplots(figsize=(6, 6))
 
 # Use seaborn's barplot function with the specified colors
-sns.barplot(x='Year', y='logging', data=merged_df, label='Logging', alpha=1, ax=ax, color=colors[0], zorder=2)
+sns.barplot(x='Year', y='logging', data=merged_df, label='logging', alpha=1, ax=ax, color=colors[0], zorder=2)
 sns.barplot(x='Year', y='forest fires', data=merged_df, label='forest fires', alpha=1, ax=ax, color=colors[1], zorder=3, bottom=merged_df['logging'])
 ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.1f}'.format(x / 1e6)))# Set title and labels
 ax.set_xlabel('year')
@@ -368,7 +368,7 @@ ax.set_xticklabels(merged_df['Year'], rotation=90)
 
 # Show the plot
 legend = plt.legend(loc='upper left')
-legend.get_texts()[0].set_text('Logging')
+legend.get_texts()[0].set_text('logging')
 legend.get_texts()[1].set_text('forest fires')
 
 # Calculate the sum of the 'logging' column
@@ -421,7 +421,7 @@ merged_df['Year'] = merged_df['Year'] + 2000
 fig, ax = plt.subplots(figsize=(6, 6))
 
 # Use seaborn's barplot function with the specified colors
-sns.barplot(x='Year', y='logging', data=merged_df, label='Logging', alpha=1, ax=ax, color=colors[0], zorder=2)
+sns.barplot(x='Year', y='logging', data=merged_df, label='logging', alpha=1, ax=ax, color=colors[0], zorder=2)
 sns.barplot(x='Year', y='forest fires', data=merged_df, label='forest fires', alpha=1, ax=ax, color=colors[1], zorder=3, bottom=merged_df['logging'])
 ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x / 1e6)))# Set title and labels
 ax.set_xlabel('year')
@@ -442,8 +442,9 @@ ax.set_xticklabels(merged_df['Year'], rotation=90)
 
 # Show the plot
 legend = plt.legend(loc='upper left')
-legend.get_texts()[0].set_text('logging')
 legend.get_texts()[1].set_text('forest fires')
+legend.get_texts()[0].set_text('logging')
+
 
 # Calculate the sum of the 'logging' column
 total_sum = merged_df['total'].sum()
@@ -452,6 +453,8 @@ fire_sum = merged_df['forest fires'].sum()
 
 # Add a custom legend entry for the total sum
 custom_legend_entry = f'primary forest loss (PA): {round(total_sum/1000000, 2)} Mha \nlogging: {round(logging_sum/1000000, 2)} Mha \nfires: {round(fire_sum/1000000, 2)} Mha'
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles[::-1], labels[::-1])
 
 # Add text at an arbitrary location of the Axes
 ax.text(x=0, y=y_max * 0.82, s=custom_legend_entry, fontsize=12)
@@ -551,12 +554,12 @@ df['Year'] = df['Year'] + 2000
 fig, ax = plt.subplots(figsize=(6, 6))  # Adjust the width and height as needed
 
 # Use seaborn's barplot function with the specified colors
-sns.barplot(x='Year', y='total', data=df, label='New palm oil plantations after deforestation', alpha=1, ax=ax, color=colors[0], zorder=2)
-ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.1f}'.format(x / 1e6)))
+sns.barplot(x='Year', y='total', data=df, label='New palm oil after deforestation', alpha=1, ax=ax, color=colors[0], zorder=2)
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x / 1e6)))
 
 # Set title and labels
 ax.set_xlabel('Year')
-ax.set_ylabel('new oil palm after deforeastation (Mha)')
+ax.set_ylabel('Mha')
 
 # Adjust spines and grid
 sns.despine(left=True)
@@ -565,7 +568,7 @@ ax.yaxis.grid(True)
 
 # Adjust y-axis limit
 y_max = df['total'].max()
-ax.set_ylim(0, y_max * 1.15)
+ax.set_ylim(0,500000)
 
 # Rotate x-axis labels by 90 degrees
 ax.xaxis.set_major_locator(FixedLocator(range(len(df['Year']))))
@@ -575,10 +578,10 @@ ax.set_xticklabels(df['Year'], rotation=90)
 total_sum = df['total'].sum()
 
 # Add a custom legend entry for the total sum
-custom_legend_entry = f'Total new oil palm plantation after deforestation: {round(total_sum/1000000, 2)} Mha'
+custom_legend_entry = f'new oil palm after deforestation: {round(total_sum/1000000, 2)} Mha'
 
 # Add text at an arbitrary location of the Axes
-ax.text(x=0, y=y_max * 1.05, s=custom_legend_entry, fontsize=12)
+ax.text(x=0, y=y_max * 1.35, s=custom_legend_entry, fontsize=12)
 
 plt.legend().remove()
 plt.tight_layout()
@@ -894,7 +897,7 @@ df_totalop['nonforest'] = df_op_nonforest['total']
 
 
 
-fig, ax = plt.subplots(figsize=(7, 5))  # Adjust the width and height as needed
+fig, ax = plt.subplots(figsize=(6, 6))  # Adjust the width and height as needed
 
 # Calculate the sums
 primary_sum = df_totalop['primary'].sum()
@@ -920,7 +923,7 @@ ax.yaxis.grid(True)
 
 # Adjust y-axis limit
 y_max = df_totalop[['primary', 'secondary', 'nonforest']].sum(axis=1).max()
-ax.set_ylim(0, y_max * 1.15)
+ax.set_ylim(0,500000)
 
 # Rotate x-axis labels by 90 degrees
 ax.xaxis.set_major_locator(FixedLocator(range(len(df_totalop['Year']))))
@@ -1025,7 +1028,7 @@ figsize = (6, 5)
 
 # Define the data and labels for the first pie chart
 build_up_sums = [non_forest_new, forest_non_primary_new, sum_primary_forest_loss_new_build_up]
-labels = ['no forest \n loss', 'other \n forest loss', 'primary \n forest loss']
+labels = ['no forest \n loss', 'secondary \n forest loss', 'primary \n forest loss']
 colors = [dark_red, '#a30202', red]
 
 # Create the first pie chart
@@ -1042,7 +1045,7 @@ for i, (patch, label) in enumerate(zip(patches, labels)):
 # Add a text box to the first pie chart
 ax_text1 = fig1.add_axes([0.5, 0.1, 0.1, 0.1])
 ax_text1.axis('off')
-ax_text1.text(0.2, 0.2, 'New built-up area (2001 - 2020): {:.0f} km²'.format(new_build_up_total / 100), horizontalalignment='center', verticalalignment='center', fontweight='bold', transform=ax_text1.transAxes)
+ax_text1.text(0.2, 0.2, 'New built up area (2001 - 2020): {:.0f} km²'.format(new_build_up_total / 100), horizontalalignment='center', verticalalignment='center', fontweight='bold', transform=ax_text1.transAxes)
 
 # Save the first figure
 fig1.savefig('results/final_plots/pie_new_built_up.png', dpi=120, bbox_inches='tight')
@@ -1064,7 +1067,7 @@ for i, (patch, label) in enumerate(zip(patches, labels)):
 # Add a text box to the second pie chart
 ax_text2 = fig2.add_axes([0.5, 0.1, 0.1, 0.1])
 ax_text2.axis('off')
-ax_text2.text(0.5, 0.2, 'Built-up area in 2000: {:.0f} km²'.format(existing_build_up_total / 100), horizontalalignment='center', verticalalignment='center', fontweight='bold', transform=ax_text2.transAxes)
+ax_text2.text(0.5, 0.2, 'Built up area in 2000: {:.0f} km²'.format(existing_build_up_total / 100), horizontalalignment='center', verticalalignment='center', fontweight='bold', transform=ax_text2.transAxes)
 
 # Save the second figure
 fig2.savefig('results/final_plots/pie_existing_built_up.png', dpi=120, bbox_inches='tight')
@@ -1497,17 +1500,18 @@ df['Year'] = df['Year'].astype(int)
 
 
 # Create a figure and axis
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(6, 6))  # Adjust the width and height as needed
 
-# Bar cMhart for 'total' with a label
-bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations in RSPO certified concessions', alpha=0.7)
+# Use seaborn's barplot function with the specified colors
+sns.barplot(x='Year', y='total', data=df, label='New palm oil plantations on nonforest area', alpha=1, ax=ax, color=colors[0], zorder=2)
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x / 1e6)))
 
 # Set title and labels
 ax.set_xlabel('Year')
-ax.set_ylabel('hectares')
+ax.set_ylabel('Mha')
 
 # Adjust spines and grid
-ax.spines['bottom'].set_visible(True)
+sns.despine(left=True)
 ax.xaxis.grid(False)
 ax.yaxis.grid(True)
 
@@ -1515,28 +1519,26 @@ ax.yaxis.grid(True)
 y_max = df['total'].max()
 ax.set_ylim(0, y_max * 1.15)
 
-# Add total labels for each year
-for year, total in zip(df['Year'], df['total']):
-    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+# Rotate x-axis labels by 90 degrees
+ax.xaxis.set_major_locator(FixedLocator(range(len(df['Year']))))
+ax.set_xticklabels(df['Year'], rotation=90)
 
 # Calculate the sum of the 'total' column
 total_sum = df['total'].sum()
 
-# Add the sum of the 'total' column to the plot
-ax.text(df['Year'].min(), y_max * 1.2, f'Total new palm oil plantations in RSPO certified concessions: {round(total_sum/1000000, 2)} mio Mha', ha='left', va='center')
+# Add a custom legend entry for the total sum
+custom_legend_entry = f'new oil palm on RSPO certified: {round(total_sum/1000000, 2)} mio Mha'
 
-# Turn off scientific notation
-ax.ticklabel_format(style='plain')
+# Add text at an arbitrary location of the Axes
+ax.text(x=1, y=y_max * 0.9, s=custom_legend_entry, fontsize=12)  # Increase y-value to move text up
+ax.set_ylim(0,150000)
+plt.legend().remove()
+plt.tight_layout()
 
-# Set x-axis labels to integers
-ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-
-# Show the plot
-plt.legend()
-plt.show()
 
 # Save the figure in high resolution
 fig.savefig('results/final_plots/oil_palm_in_RSPO_certified_regions.png', dpi=300)
+plt.show()
 ```
 
 # 5.2 RSPO uncertified concessions
@@ -1560,17 +1562,18 @@ df['Year'] = df['Year'].astype(int)
 
 
 # Create a figure and axis
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(6, 6))  # Adjust the width and height as needed
 
-# Bar cMhart for 'total' with a label
-bars = ax.bar(df['Year'], df['total'], label='New palm oil plantations in RSPO uncertified concessions', alpha=0.7)
+# Use seaborn's barplot function with the specified colors
+sns.barplot(x='Year', y='total', data=df, label='New palm oil plantations on nonforest area', alpha=1, ax=ax, color=colors[0], zorder=2)
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x / 1e6)))
 
 # Set title and labels
 ax.set_xlabel('Year')
-ax.set_ylabel('hectares')
+ax.set_ylabel('Mha')
 
 # Adjust spines and grid
-ax.spines['bottom'].set_visible(True)
+sns.despine(left=True)
 ax.xaxis.grid(False)
 ax.yaxis.grid(True)
 
@@ -1578,28 +1581,251 @@ ax.yaxis.grid(True)
 y_max = df['total'].max()
 ax.set_ylim(0, y_max * 1.15)
 
-# Add total labels for each year
-for year, total in zip(df['Year'], df['total']):
-    ax.text(year, total + y_max*0.02, f'{round(total)}', ha='center', va='bottom', fontsize=10, rotation=90)
+# Rotate x-axis labels by 90 degrees
+ax.xaxis.set_major_locator(FixedLocator(range(len(df['Year']))))
+ax.set_xticklabels(df['Year'], rotation=90)
 
 # Calculate the sum of the 'total' column
 total_sum = df['total'].sum()
 
-# Add the sum of the 'total' column to the plot
-ax.text(df['Year'].min(), y_max * 1.2, f'Total new palm oil plantations in RSPO uncertified concessions: {round(total_sum/1000000, 2)} mio Mha', ha='left', va='center')
+# Add a custom legend entry for the total sum
+custom_legend_entry = f'new oil palm on RSPO uncertified: {round(total_sum/1000000, 2)} mio Mha'
 
-# Turn off scientific notation
-ax.ticklabel_format(style='plain')
+# Add text at an arbitrary location of the Axes
+ax.text(x=0, y=y_max * 2.2, s=custom_legend_entry, fontsize=12)  # Increase y-value to move text up
+ax.set_ylim(0,150000)
+plt.legend().remove()
+plt.tight_layout()
 
-# Set x-axis labels to integers
-ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-
-# Show the plot
-plt.legend()
-plt.show()
 
 # Save the figure in high resolution
 fig.savefig('results/final_plots/oil_palm_in_RSPO_uncertified_regions.png', dpi=300)
+plt.show()
+
+
+```
+
+
+### RSPO Forest Loss primary in certified and uncertified
+
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 1) * 1
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/RSPO_primary_forest_loss.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int) + 2000
+
+
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(6, 5))  # Adjust the width and height as needed
+
+# Use seaborn's barplot function with the specified colors
+sns.barplot(x='Year', y='total', data=df, label='New palm oil plantations on nonforest area', alpha=1, ax=ax, color=colors[0], zorder=2)
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x)))
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('ha')
+
+# Adjust spines and grid
+sns.despine(left=True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Rotate x-axis labels by 90 degrees
+ax.xaxis.set_major_locator(FixedLocator(range(len(df['Year']))))
+ax.set_xticklabels(df['Year'], rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add a custom legend entry for the total sum
+custom_legend_entry = f'primary forest loss in RSPO certified: {round(total_sum)} ha'
+
+# Add text at an arbitrary location of the Axes
+ax.text(x=0, y=y_max * 1.05, s=custom_legend_entry, fontsize=12)  # Increase y-value to move text up
+ax.set_ylim(0,1250)
+plt.legend().remove()
+plt.tight_layout()
+
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/RSPO_certified_primary_loss.png', dpi=300)
+plt.show()
+```
+
+
+```{python}
+from matplotlib.ticker import MaxNLocator
+def round_to_nearest_100(n):
+    return round(n / 1) * 1
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/RSPO_primary_forest_loss_uncertified.csv')
+
+# Rename 'Area (ha)' column to 'total'
+df.rename(columns={'Area (ha)': 'total'}, inplace=True)
+
+for col in df.columns:
+    if col != 'Year':
+        df[col] = df[col].apply(round_to_nearest_100)
+df['Year'] = df['Year'].astype(int) + 2000
+
+
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(6, 5))  # Adjust the width and height as needed
+
+# Use seaborn's barplot function with the specified colors
+sns.barplot(x='Year', y='total', data=df, label='New palm oil plantations on nonforest area', alpha=1, ax=ax, color=colors[0], zorder=2)
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x)))
+
+# Set title and labels
+ax.set_xlabel('Year')
+ax.set_ylabel('ha')
+
+# Adjust spines and grid
+sns.despine(left=True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# Adjust y-axis limit
+y_max = df['total'].max()
+ax.set_ylim(0, y_max * 1.15)
+
+# Rotate x-axis labels by 90 degrees
+ax.xaxis.set_major_locator(FixedLocator(range(len(df['Year']))))
+ax.set_xticklabels(df['Year'], rotation=90)
+
+# Calculate the sum of the 'total' column
+total_sum = df['total'].sum()
+
+# Add a custom legend entry for the total sum
+custom_legend_entry = f'primary forest loss in RSPO uncertified: {round(total_sum)} ha'
+
+# Add text at an arbitrary location of the Axes
+ax.text(x=0, y=y_max * 1.04, s=custom_legend_entry, fontsize=12)  # Increase y-value to move text up
+ax.set_ylim(0,4500)
+plt.legend().remove()
+plt.tight_layout()
+
+
+# Save the figure in high resolution
+fig.savefig('results/final_plots/RSPO_uncertified_primary_loss.png', dpi=300)
+plt.show()
+```
+
+
+# croplands
+
+```{python}
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+import matplotlib.ticker as ticker
+
+# Load the data from the CSV file
+df = pd.read_csv('../code/results/tables/croplands.csv')
+df['Year'] = [2003, 2007, 2011, 2015, 2019]
+
+df_croplands_deforestation = pd.read_csv('../code/results/tables/croplands_deforestation.csv')
+df['deforestation'] = df_croplands_deforestation['Area (ha)']
+
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(10, 5))  # Adjust the width and height as needed
+
+# Use seaborn's lineplot function for 'Area (ha)'
+sns.lineplot(x='Year', y='Area (ha)', data=df, ax=ax, color=dark_red, label = 'cropland area', linewidth=2.5, marker='o', markersize = 10)
+
+# Add lineplot for 'deforestation'
+sns.lineplot(x='Year', y='deforestation', data=df, ax=ax, color=grey, label = 'previous deforestation', linewidth=2.5, marker='o', markersize = 10)
+
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x / 1e6)))
+
+# Set title and labels for x and y axes
+ax.set_xlabel('Year', labelpad= 10, fontweight = 'bold', fontsize = 12)
+ax.set_ylabel('Area Mha', fontweight = 'bold')
+
+# Set x-ticks and rotate x-axis labels by 90 degrees
+ax.set_xticks(df['Year'])
+ax.set_xticklabels(df['Year'], rotation=0)
+
+# Adjust spines and grid
+sns.despine(left=True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+ax.set_ylim(0,340000)
+
+# Show the plot
+plt.tight_layout()
+plt.show()
+
+fig.savefig('../text/04_literature_review_files/croplands.png', dpi=200)
+
+
+
+```
+
+```{python}
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
+# Daten erstellen
+data = {
+    'paths': ['Rice', 'Maize', 'Coffee', 'Cassava', 'Banana', 'Groundnut', 'Soybean', 'Vegetabes', 'Other Oil'],
+    '2000': [845096, 71826, 69038, 60075, 28827, 22347, 16552, None, None],
+    '2005': [693625, 69876, 64004, 40199, 19330, 19258, 6764, 66130, 70825],
+    '2010': [487506, 53694, 29116, 11468, None, 2745, 452, 22458, 71045]
+}
+
+df = pd.DataFrame(data)
+
+# Daten für das Diagramm vorbereiten
+df_melt = df.melt('paths', var_name='Year', value_name='total')
+
+# Diagramm erstellen
+fig, ax = plt.subplots(figsize=(10,6))
+sns.barplot(x='Year', y='total', hue='paths', data=df_melt)
+
+# Achsenbeschriftungen setzen
+ax.set_xlabel('Year')
+ax.set_ylabel('ha')
+
+# Gitterlinien anpassen
+sns.despine(left=True)
+ax.xaxis.grid(False)
+ax.yaxis.grid(True)
+
+# y-Achsen-Ticks formatieren
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.0f}'.format(x)))
+
+# y-Achsen-Limit anpassen
+y_max = df_melt['total'].max()
+ax.set_ylim(0,y_max*1.15)
+
+# x-Achsen-Beschriftungen um 90 Grad drehen
+plt.xticks(rotation=90)
+
+plt.tight_layout()
+plt.show()
+
+
+
 ```
 
 
@@ -1868,7 +2094,7 @@ legend.set_title("Buffer distances", prop={'weight': 'bold'})
 
 # Save the entire figure as a single image
 plt.tight_layout()
-plt.subplots_adjust(bottom=0.25)  # adjust the bottom space
+plt.subplots_adjust(bottom=0.3)  # adjust the bottom space
 fig.savefig('results/final_plots/op_buffer.png', dpi=300)
 
 # Display the combined figure with subplots
@@ -2020,7 +2246,7 @@ for i, (title, width_file) in enumerate(zip(titles, width_files)):
         ax.plot(x, y, color='grey', linewidth=0.7)
 
     ax.set_title(title, fontsize=14, fontweight='bold')
-    ax.set_xlabel('area of primarycovered by buffer (Mha)')
+    ax.set_xlabel('area of primary covered by buffer (Mha)')
     ax.set_ylabel('primary forest loss (Mha)')
 
     # Add horizontal grid lines in light grey
@@ -2056,7 +2282,7 @@ legend = fig.legend(legend_artists, legend_labels, loc='lower center', bbox_to_a
 legend.set_title("Buffer distances", prop={'weight': 'bold'})
 # Remove the legend from the third plot
 
-plt.subplots_adjust(bottom=0.25)  # adjust the bottom space
+plt.subplots_adjust(bottom=0.3)  # adjust the bottom space
 # Save the entire figure as a single image
 fig.savefig('results/final_plots/deforestation_buffer_primary_forest.png', dpi=300)
 

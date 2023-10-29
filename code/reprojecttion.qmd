@@ -48,11 +48,58 @@ output_file_path = '../../10_reprojection/forest_cover_year_2000_and_primary.tif
 
 reproject_raster(epsg, input_file_path, output_file_path)
 
-input_file_path = '../../07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif'
-output_file_path = '../../10_reprojection/gfw_2000_2022_borneo.tif'
-reproject_raster(epsg, input_file_path, output_file_path)
 ```
 
+
+```{python}
+import os
+
+def reproject_raster(epsg, input_file_path, nodata_value=0):
+    # Extract the filename from the input path
+    filename = os.path.basename(input_file_path)
+    
+    # Define the output folder
+    output_folder = '../../10_reprojection/'
+    
+    # Create the full output path
+    output_file_path = os.path.join(output_folder, filename)
+
+    # Open source raster
+    srcRst = rasterio.open(input_file_path)
+
+    dstCrs = 'EPSG:' + epsg
+
+    # Calculate transform array and shape of reprojected raster
+    transform, width, height = calculate_default_transform(
+            srcRst.crs, dstCrs, srcRst.width, srcRst.height, *srcRst.bounds)
+
+    # Working of the meta for the destination raster
+    kwargs = srcRst.meta.copy()
+    kwargs.update({
+            'crs': dstCrs,
+            'transform': transform,
+            'width': width,
+            'height': height,
+            'compress': 'lzw',
+            'nodata': nodata_value
+        })
+
+    # Open destination raster
+    dstRst = rasterio.open(output_file_path, 'w', **kwargs)
+
+    # Reproject and save raster band data
+    for i in range(1, srcRst.count + 1):
+        reproject(
+            source=rasterio.band(srcRst, i),
+            destination=rasterio.band(dstRst, i),
+            src_crs=srcRst.crs,
+            dst_crs=dstCrs,
+            resampling=Resampling.nearest)
+    
+    # Close destination raster
+    dstRst.close()
+
+```
 
 ```{python}
 from osgeo import gdal
@@ -69,5 +116,61 @@ def get_nodata_value(tif_path):
     print(nodata_value)
 
 get_nodata_value(output_file_path)
+
+```
+
+```{python}
+already completed:
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/deforestation/LAEA_forest_fires.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/deforestation/LAEA_gfw_2000_2022_borneo.tif',
+```
+
+```{python}
+input_tifs = [
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/deforestation/LAEA_gfw_gain_2000_2012_borneo.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/deforestation/LAEA_primary_forest_2001.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_build_up_area_2000.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_new_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_100_build_up_area_2000.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_100_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_100_new_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_200_build_up_area_2000.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_200_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_200_new_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_500_build_up_area_2000.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_500_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_500_new_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_1000_build_up_area_2000.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_1000_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_1000_new_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_2000_build_up_area_2000.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_2000_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/infrastructure/LAEA_buffer_2000_new_build_up_area.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/oil_palm/LAEA_snap_gfw_detection_year_2000_2017.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/protected_areas/protected_areas_primary.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/07_data_prepared/protected_areas/protected_areas_secodary.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/08_data_processed/combined/secondary_forest.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/08_data_processed/combined/deforestation_primary_forest_no_forest_fires.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/08_data_processed/combined/deforestation_primary_forest_forest_fires.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/08_data_processed/combined/new_oil_palm_after_deforestation.tif',
+'/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/08_data_processed/combined/new_oil_palm_primary.tif',
+]
+```
+
+
+```{python}
+input_tifs = ['/Users/robinpfaff/Library/CloudStorage/OneDrive-ZHAW/6_Semester/BA/08_data_processed/deforestation/primary_forest_forest_fires.tif']
+```
+
+```{python}
+epsg = '4326'
+
+for file in input_tifs:
+    try:
+        reproject_raster(epsg, file)
+        print(f"succes: {file}")
+    except Exception as e:
+        print(f"An error occurred with file {file}: {e}")
+        continue
 
 ```

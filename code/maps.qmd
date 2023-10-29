@@ -387,7 +387,7 @@ tif_list = [
         'cbar_ticks': 0,
         'cbar_add_to_tick_value': 2000,
         'cbar_round_tick_value': 0,
-        'cbar_side_title': 'forest cover (2000)',
+        'cbar_side_title': 'secondary forest (2000)',
         'cbar_order': 4,
         'cbar_distance': 0.0,
     },
@@ -550,10 +550,10 @@ plot_multiple_tifs(tif_list,
 # 3 Primary Forest Loss Malaysia
 
 ```{python}
-top = 335000
-left = -65000
-bottom = 240000
-right = 30000
+top = 310000
+left = -40000
+bottom = 250000
+right = 20000
 
 tif_list = [
     {
@@ -584,7 +584,7 @@ tif_list = [
         'cbar_round_tick_value': 0,
         'cbar_side_title': 'Forest fires',
         'cbar_order': 1,
-        'cbar_distance': 0,
+        'cbar_distance': 0.015,
         'zorder': 4
     },
     {
@@ -602,6 +602,40 @@ tif_list = [
         'cbar_order': 3,
         'cbar_distance': 0.045,
         'zorder': 2
+
+    },
+    {
+        'path': '../../07_data_prepared/infrastructure/LAEA_new_build_up_area.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#f62afa',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'new built up',
+        'cbar_order': 0,
+        'cbar_distance': 0.0,
+        'zorder': 6
+
+    },
+    {
+        'path': '../../07_data_prepared/infrastructure/LAEA_build_up_area_2000.tif',
+        'colormap': 'Reds',
+        'cmap_limits': (0.3, 0.9),
+        'value_range': None,
+        'single_color': '#f79205',
+        'transparency': 0,
+        'cbar_title': '',
+        'cbar_ticks': 0,
+        'cbar_add_to_tick_value': 2000,
+        'cbar_round_tick_value': 0,
+        'cbar_side_title': 'built up 2000',
+        'cbar_order': 0,
+        'cbar_distance': 0.0,
+        'zorder': 5
 
     }
 ]
@@ -1092,7 +1126,7 @@ tif_list = [
         'zorder': 4
     }
 ]
-output_path = 'results/maps/validation_built_up_deforestation.png'
+output_path = 'results/maps/vegetation_oil_palm_00_03.png'
 
 plot_multiple_tifs(tif_list,
                     shp_list = None,
@@ -1140,7 +1174,7 @@ tif_list = [
         'cbar_ticks': 0,
         'cbar_add_to_tick_value': 2000,
         'cbar_round_tick_value': 0,
-        'cbar_side_title': '>=75% closed canopy (2000)',
+        'cbar_side_title': 'secondary forest (2000)',
         'cbar_order': 4,
         'cbar_distance': 0,
         'zorder': 2

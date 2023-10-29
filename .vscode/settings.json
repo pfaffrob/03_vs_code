@@ -24,6 +24,16 @@
             "language": "quarto",
             "scheme": "file",
             "pattern": "text/05_method.qmd"
+        },
+        {
+            "language": "quarto",
+            "scheme": "file",
+            "pattern": "text/06_results.qmd"
+        },
+        {
+            "language": "quarto",
+            "scheme": "file",
+            "pattern": "text/02_abstract.qmd"
         }
     ]
 }

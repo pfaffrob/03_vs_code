@@ -6,7 +6,7 @@ from my_functions import *
 ```
 
 
-# import extent
+# import Borneo extent
 ```{python}
 WGS84 = "EPSG:4326"
 gdf_boundary_WGS84 = ox.geocode_to_gdf("Borneo").dropna(axis=1, how="any").to_crs(WGS84)
@@ -19,6 +19,20 @@ output_shp = "../../07_data_prepared/boundary/borneo_boundary_LAEA_Borneo.shp"
 
 reproject_shapefile_to_wktcrs(input_shp, output_shp)
 
+```
+
+# malaysia extent
+```{python}
+WGS84 = "EPSG:4326"
+gdf_boundary_WGS84 = ox.geocode_to_gdf("Malaysia").dropna(axis=1, how="any").to_crs(WGS84)
+
+# Export the GeoDataFrame as a shapefile
+gdf_boundary_WGS84.to_file("../../07_data_prepared/boundary/malaysia_boundary_WGS84.shp")
+
+input_shp = "../../07_data_prepared/boundary/malaysia_boundary_WGS84.shp"
+output_shp = "../../07_data_prepared/boundary/malaysia_boundary_LAEA.shp"
+
+reproject_shapefile_to_wktcrs(input_shp, output_shp)
 ```
 
 # Total Area of Borneo

@@ -1,47 +1,72 @@
-# Method {#sec-method}
+# Materials and Method {#sec-method}
 
 ## Data acquisition and selection
 
-Initially, databases such as Web of Knowledge or Google Scholar were searched for GIS and remote sensing studies covering the extent Borneo, Southeast Asia or even a global extent and downloaded. QGIS (Version 3.30) was used for initial data exploration. This led to the manual selection of data shown in @fig-data_overview for further analysis. Hereafter, the datasets are referred to by the names specified in the content column. The research area was defined as the landmass of Borneo, explicitly excluding the smaller surrounding islands. This delineation was obtained through the download of the Borneon boundary using the OSMnx python package (Verison 1.3.0), which accesses the Open Street Maps (OSM) database [@boeingOSMnxPythonPackage2017].
+Initially, databases such as Web of Knowledge or Google Scholar were searched for GIS and remote sensing studies covering the extent Borneo or Southeast Asia. However, most of the studies that provide the necessary data have been carried out on a global scale. The exerts of the datasets covering Borneo were downloaded and visualized in QGIS (Version 3.30) for initial data exploration. This led to the manual selection of data presented in @fig-data_overview for the subsequent analysis. Hereafter, the datasets are referred to by the names specified in the content column. All raster datasets were in tif format and the vector data in shapefile format. The research area was defined as the landmass of Borneo, excluding the smaller surrounding islands. This delineation was obtained through the download of the Borneon boundary using the OSMnx python package (Verison 1.3.0), which accesses the Open Street Maps (OSM) database [@boeingOSMnxPythonPackage2017].
 
 ![All datasets used in this thesis and the temporal scope they span.](05_method_files/data_overview.pdf){#fig-data_overview}
+
+Forest cover shows the percent of closed canopy in the year 2000 of vegetation higher than 5m [@hansenHighResolutionGlobalMaps2013]. Turubanov et al. used expert-interpreted training data for detection of patterns recognized as primary forest [-@turubanovaOngoingPrimaryForest2018].  The forest loss dataset shows the year of quick changes in forest cover to ~0% closed canopy [@hansenHighResolutionGlobalMaps2013]. Forest fires show data shows the forest loss to forest fires in the joint extent of the forest loss dataset [-@hansenHighResolutionGlobalMaps2013; @tyukavinaGlobalTrendsForest2022]. The new oil palms dataset shows the year oil palm was detected for the span of 1984 - 2017 [@danyloMapExtentYear2021]. Oil palms are detected no earlier than 2-3 years after planting [@danyloMapExtentYear2021]. The built up areas dataset contains two categories: i) built up areas in 2000 and ii) newly built up areas between 2001 and 2020 [@potapovGlobal20002020Land2022]. The cropland datasets shows land used for agriculture where shrubby plants were consistently cultivated over four years. Even though multiple spatial datasets allocate crop type spatially, none of them is based on remotely sensed data [@groganGlobalGriddedCrop2022; @wood-sichraSpatialProductionAllocation2016; @youMappingGlobalCropping2022; @youGeneratingPlausibleCrop2009; @yuCultivatedPlanet20102020]. The Spatial Production Allocation Model (SPAM) takes the most factors into account rendering it the most comprehensive data. The data shows harvest area of multiple crops within a 5 arcminute (~8km) resolution. Protected areas represent those registered in the World Database on Protected Areas [@unep-wcmcProtectedAreaProfile2023]. Although the RSPO stated in early 2020 that the RSPO concessions will also be made publicly available for Indonesia [@rspoRSPOMEMBERSCONCESSION2020], this is still not the case as of today. A personal inquiry about this also remained unanswered. Thus, analysis of RSPO concessions could only be carried out for Malaysia. The Borneon and Malaysian boundaries are both derived from OpenStreetMap.
 
 ## Software
 
 All data preparation and analysis steps were performed using open-source Python packages in Visual Studio Code (Version 1.83.0). Python version was 3.10.9. Rasterio (Version 1.3.6) and NumPy (Version 1.24.3) were the most relevant packages for data processing [@gilliesRasterioDocumentation2023; @harrisArrayProgrammingNumPy2020].
-For each step a Python function was developed, which requires an input path(s), optionally a target file path and an output path. The output file was compressed in lzw form. The full code is available on [github.com/pfaffrob/03_vs_code](https://github.com/pfaffrob/03_vs_code).
-OpenAI's Chat-GPT (versions 3.0, 3.5 and 4.0) was used to support code generation. Functions were created using a minimal example with the help of Chat-GPT. Subsequently, more complex features were implemented into the function through personal adjustments or continuous user feedback to the AI. The generated code was carefully inspected and reviewed to ensure its correctness.
+A comprehensive user-friendly set of functions was created. These functions require one or multiple input paths, an output path and optionally a reference file path (e.g. a mask tif, snap tif, etc.) and additional conditions (e.g. mask values). The output file was compressed in lzw form. The full code is available on [github.com/pfaffrob/03_vs_code](https://github.com/pfaffrob/03_vs_code).
+
+OpenAI's Chat-GPT (versions 3.0, 3.5 and 4.0) was used to support code generation. Functions were developed by starting with a minimal example with aid of Chat-GPT. Subsequently, more complex features were implemented through personal adjustments or continuous user feedback to the AI until it met the requirements. The generated code and its output files were carefully inspected to ensure correctness.
 
 
 ## Data preparation
 
-All data has been brought into a consistent format. This included steps like merging multiple files, clipping to bbox, changing all values outside the mask (e.g. boundary of Borneo) to the _nodata_ value, and reprojecting it to a uniform projection. For the analysis, the Lambert Azimuthal Equal Area Projection was used with the center point being at 115° longitude and 0° latitude. The workflow for the preparation of raster and vector data is visible in @fig-data_preparation.
+For area calculations, it is crucial to choose a well-suited coordinate reference system (crs). The use of one UTM zone was considered too inaccurate since Borneo spans four UTM zones. The only crs available covering Borneo is the Timbalai 1948 [@klokantechnologiesgmbhTimbalai1948RSO]. But even this projection only adequately depicts the Malaysian part, and thus distorts the larger Indonesian part of Borneo, resulting in biased results. Therefore the Lambert Azimuthal Equal Area Projection was chosen as it is well suited to accurately represent the area at large spatial scales [@esriQuick_Notes_on_Map_Projections_in_ArcGIS_nov2019Pdf2019; @esriLambertAzimuthalEqualarea2023]. Although this does not affect the area calculations, the origin was manually set to the center of Borneo (115° longitude; 0° latitude) to achieve maps of Borneo with minimal distortion.
 
 
-::: {#fig-data_preparation layout-ncol=1}
 
-![raster data preparation](05_method_files/raster_preparation.pdf){#fig-raster_preparation}
+All data has been brought into a consistent format. This required merging, clipping, reclassification and snapping, which includes resampling of the data with method nearest neighbour. For the latter, the forest loss dataset was chosen as the reference grid. The workflow for the preparation of raster and vector data is visible in @fig-data_preparation. Preparation steps were only carried out if it was required. For example, the datasets for primary forests and forest fires consisted of only one file, hence there was no need for merging.
 
-![vector data preparation](05_method_files/shp_preparation.pdf){#fig-shp_preparation}
+::: {#fig-data_preparation layout-ncol=1 fig-pos="H"}
 
-Workflow of data preparation. _green: processing steps; yellow: files_
+![Processing steps for preparation of raster data.](05_method_files/raster_preparation.png){#fig-raster_preparation}
+
+![Processing steps for preparation of shapefiles.](05_method_files/shp_preparation.png){#fig-shp_preparation}
+
+Workflow of data preparation for raster data and **(b)** shapefiles. The steps were applied as necessary. The legend in figure **(b)** also applies to **(a)**.
 :::
-- Farbgebung vereinheitlichen (anpassen an @fig-bardeforestation)
-
-- Detaillierter auf die verschiedenen Funktionen eingehen?
 
 ## Analysis
-For answering the simpler questions that required only one data set, such as quantifying annual deforestation rates or total primary forest area in 2000, the area calculations could be performed without any further steps. For more complex questions, where multiple datasets were involved, they were resampled onto the same grid. To create buffer zones based on the built-up areas, each pixel whose center was located within a radius of 100, 200, 500, 1000, and 2000 meters to a pixel of the built-up area was used as a mask for further analysis. The workflow of this is visible in @fig-bufferworkflow. 
-
-![Workflow of buffer maps and subsequent combination with other datasets](05_method_files/buffer.pdf){#fig-bufferworkflow}
-
-- Detaillierter auf die verschiedenen Funktionen eingehen?
-
-## Further definitions
-The forest cover dataset shows the percentage of canopy cover. However, Hansen et al. provide no definition of what is considered forest [-@hansenHighResolutionGlobalMaps2013]. Therefore, a threshold of 75% closed canopy was chosen, which was also used by Turubanova et al. for comparison of their Results with GFW data [-@turubanovaOngoingPrimaryForest2018].  However, Turubanov et al. used expert interpreted training data for detection of patterns recognized as primary forest [-@turubanovaOngoingPrimaryForest2018]. Although areas with >75% closed canopy overlap nearly all of the primary forest areas (see Annex **XY**), these were reclassified as forest (see @fig-piefcover2000). 
+For answering the simpler questions (annex I) that required only one data set, such as quantifying annual deforestation rates or total primary forest area in 2000, the area calculations could be performed without any further steps. The more complex processing steps are described below. Area calculations were performed by counting the frequency of unique pixel values and multiplying them by the area of one pixel. The maps are also presented [online](https://storymaps.arcgis.com/stories/4594866b4f414b8aa7571325336db771).
 
 
+### Deforestation
 
-Aggregated plants and perennial woody plants such as coconut and oil palm were manually removed from subsequent analysis due to the cropland definition in the used dataset [@potapovGlobalMapsCropland2021], as well as crops with a total physical harvest area lower than 10000 ha within the project extent in any of the three datasets.
+The forest cover dataset shows the percentage of canopy cover. A threshold of 75% closed canopy was chosen as the definition of forest, which was also used by Turubanova et al. for comparison of their results with the same forest loss data source [-@turubanovaOngoingPrimaryForest2018]. Although areas with >75% closed canopy overlap nearly all of the primary forest areas (see annex II), these were reclassified as forest. The workflow for all forest loss-related analysis steps is shown in @fig-wf_deforestation.
 
-- Leider macht es trotz erfolgreicher Methodenentwicklung wenig Sinn dies genauer zu analysieren, da die intersection mit den Anbauflächen sehr gering ist. (Siehe @sec-discussion)
+![Workflow of deforestation analysis.](05_method_files/wf_deforestation.png){#fig-wf_deforestation fig-pos="H"}
+
+![Workflow of oil palm and RSPO concessions analysis.](05_method_files/op_workflow.png){#fig-wf_oilpalm fig-pos="H"}
+
+\newpage
+
+### Oil palm
+
+Multiple processing steps were performed using the created geoprocessing functions for analysis of oil palm and its contribution to defrestation (@fig-wf_oilpalm). The new oil palm dataset was already in the preprocessing limited to the study period. RSPO primary forest loss secondary forest loss and new oil palm plantations were analyzed for both RSPO-certified and uncertified concessions.
+
+
+### Infrastructure
+The processing steps for infrastructure analysis were conducted using the geoprocessing functions. The workflow is visible in @fig-wf_infrastructure.
+
+![Workflow to determine deforestation due to infrastructure.](05_method_files/wf_infrastructure.png){#fig-wf_infrastructure fig-pos="H"}
+
+
+#### Buffer infrastructure
+
+To create buffer zones based on the built-up areas, each pixel whose center was located within a radius of 100, 200, 500, 1000, and 2000 meters to a pixel of built up area was used as a mask for further analysis. Existing infrastructure in 2000, new infrastructure created from 2001 to 2020 and the total infrastructure in 2020 were each buffered individually. The workflow of this is visible in @fig-wf_buffer. 
+
+![Workflow of buffer maps and subsequent combination with other datasets](05_method_files/wf_buffer.png){#fig-wf_buffer fig-pos="H"}
+
+
+
+## Other crops
+The five cropland datasets were each masked with previous forest loss to determine deforestation. An analysis of conversion from other crops to oil palm and vice versa was not conducted because i) the intersection of cropland (at any point in time) with oil palm was considered too small (>0.2% of total oil palm area) and ii) the data on crop types proved to be inaccurate, as it was indicated that more than 1 Mha of land was used to grow non-woody crops (annex VIII), while the remotely sensed data on uniform cropland, which should represent these same crops, was only ~0.2 million ha.
+
+Open source remote sensing data is not available for other perennial woody crops such as coconut rubber or pulpwood.

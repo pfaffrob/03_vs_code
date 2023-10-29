@@ -4,14 +4,14 @@ body {
   }
 
 .file > rect {
-    fill: #e0ec98 !important; /* Lighter Mustard Yellow */
-    stroke: #94a400 !important; /* Darker Green */
-    color: #000000 !important; /* Black */
+    fill: #8b0000 !important; /* Lighter Mustard Yellow */
+    stroke: #8b0000 !important; /* Darker Green */
+    color: #ffffff !important; /* Black */
 }
 .process > rect {
     fill: #aaec96 !important; /* Medium Aquamarine */
     stroke: #478b45 !important; /* Darker Aquamarine */
-    color: #000000 !important; /* Black */
+    color: #ffffff !important; /* Black */
 }
 
 .rectangle {

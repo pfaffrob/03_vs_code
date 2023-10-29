@@ -1,33 +1,29 @@
-# Results
+## Results
 
-## Forest status in 2000
+## Borneo in 2000
 
-At the beginning of the millennium, more than half (54.3%) of the island of Borneo, which has an area of 728,799 km\textsuperscript{2}, was covered with primary forests. The remaining areas were 30.4% covered with >= 75% closed tree canopy, and 15.3% with less dense vegetation, respectively. @fig-piefcover2000 provides an overview of the composition of vegetation on Borneo at the start of the study period.
+At the beginning of the millennium, more than half (54.3%) of the island of Borneo, which has an area of 728,799 km\textsuperscript{2}, was covered with primary forests. The remaining areas were 30.4% covered with secondary forest, and 15.3% in a nonforest state. @fig-piefcover2000 provides an overview of the composition of vegetation on Borneo at the start of the study period.
 
-![Composition of vegetated areas on Borneo at the start of the study period.](../code/results/final_plots/fcover_2000.png){#fig-piefcover2000 width="70%"}
+![Composition of vegetated areas on Borneo at the start of the study period.](../code/results/final_plots/fcover_2000.png){#fig-piefcover2000 width="60%"}
 
-The >= 75% closed canopy consits of secondary forests as well as plantations. 4886 km\textsuperscript{2} or 2.2% of the >75% forest cover represent oil palms (stand 2000 or detection up to 2003), with a lot of these oil palm plantations being close to typical plantation patterns (see annex IV).  Another notable characteristic are large areas close to rivers, especially with human settlements nearby, that have lot of dense vegetation right next to primary forests (see annex V).
+4886 km\textsuperscript{2} or 2.2% of the secondary forest cover represent oil palms (detection up to 2003), with a lot of these oil palm plantations being close to typical plantation patterns (see annex III). Another notable characteristic are large areas of secondary forest within primary forest close to rivers, especially with human settlements nearby (see annex V).
 
 ## Deforestation
 
-In the years from 2001 to 2021, a total of 16.81 Mha of deforestation occured. 6.13 Mha of this is within primary forests and 10.68 Mha outside of primary forests. In both, logging was mainly responsible for forest loss, compared to forest fires. While logging rates in secondary forests increased from 0.3 to almost 0.5 Mha per year by 2008, the five most deforestation-intensive years, with 0.61 - 0.75 Mha of forest loss, occurred between 2009 and 2016. After three years of steady deforestation at 0.5 Mha per year, less than 0.4 Mha of forest loss was recorded in 2020 and 2021 @fig-bardeforestation. Within primary forests, logging rates increased from 0.11 Mha in 2002 to a maximum of 0.50 in 2012 and declined back to 0.11 Mha in 2021 @fig-bardeforestationprimary. Although there was less overall forest loss in primary forests, there were more forest fires therein (0.81 Mha) than outside (0.72 Mha). Both primary and secondary forests had their highest forest fire rates, by a large margin, in 2016 with 208,000 ha (secondary forest) and 255,000 ha (primary forest). Other years with elevated forest fire rates were 2003, 2007, 2009, 2014 and 2015 ranging from 25,000 to 79,000 ha @fig-forestlossbarcharts.
+In the years from 2001 to 2021, a total of 16.81 Mha of deforestation occurred. 6.13 Mha of this is within primary forests and 10.68 Mha outside of primary forests. In both, logging was mainly responsible for forest loss, compared to forest fires. While logging rates in secondary forests increased from 0.3 to almost 0.5 Mha per year by 2008, the five most deforestation-intensive years, with 0.61 - 0.75 Mha of forest loss, occurred between 2009 and 2016. After three years of steady deforestation at 0.5 Mha per year, less than 0.4 Mha of forest loss was recorded in 2020 and 2021 @fig-bardeforestation. Within primary forests, logging rates increased from 0.11 Mha in 2002 to a maximum of 0.50 in 2012 and declined back to 0.11 Mha in 2021 @fig-bardeforestationprimary. Although there was less overall forest loss in primary forests, there were more forest fires therein (0.81 Mha) than outside (0.72 Mha). Both primary and secondary forests had their highest forest fire rates, by a large margin, in 2016 with 208,000 ha (secondary forest) and 255,000 ha (primary forest). Other years with elevated forest fire rates were 2003, 2007, 2009, 2014 and 2015 ranging from 25,000 to 79,000 ha @fig-forestlossbarcharts.
 
-::: {#fig-forestlossbarcharts layout="[50,-2,50]"}
-
-![Secondary forest loss, peaking in 2016.](../code/results/final_plots/total_deforestation.png){#fig-bardeforestation}
+::: {#fig-forestlossbarcharts layout="[48,-2,48]"}
 
 ![Primary forest loss, peaking in 2016.](../code/results/final_plots/total_primary_forest_deforestation.png){#fig-bardeforestationprimary}
 
-Overview of deforestation within **(a)** secondary forests and **(b)** primary forests. 
+![Secondary forest loss, peaking in 2016.](../code/results/final_plots/total_deforestation.png){#fig-bardeforestation}
+
+Overview of deforestation within **(a)** primary forests and **(b)** secondary forests. 
 :::
 
-![Large areas in the Malaysian part of Borneo where logging activities are penetrating deep into the primary forest.](../code/results/maps/primary_deforestation.png){#fig-map_deforestation_primary}
+In general, logging patterns can be separated into two categories. First, large areas of logging in the same year, often with sharp borders (@fig-map_deforestation_op_fires), and second, dispersed small-scale logging (annex VI). This is especially the case in primary forests in the Malaysian part of Borneo, where logging continuously encroaches (@fig-map_deforestation_primary). Fires in secondary forests have no obvious patterns; they occur randomly and mainly on a small scale (@fig-map_deforestation_op_fires).
 
-In general, logging patterns can be separated into two categories. First, large areas of logging in the same year, often with sharp borders, and second, dispersed small-scale logging (@fig-map_deforestation_op_fires, @fig-mapdeforestation). This is especially the case in primary forests in the malaysian part of Borneo, where logging continously encroaches (@fig-map_deforestation_primary). Fires in secondary forests have no obvious patterns; they occur randomly and mainly on a small scale.
-
-Protected areas cover 6.24 Mha, of which 0.08 Mha are secondary forest and 4.72 Mha is primary forest. Within protected areas, the main reason for forest loss were forest fires, regardless of the classification as primary or secondary forest. Forest fire area and logging rates are similar (@fig-forestlossbarcharts_PA). This is remarkable given that secondary forests accounted for a massively smaller proportion of the total area of PAs. Logging in protected areas occured very limited with an average of ~2,500 ha per year being logged. However, wildfires occurred irregularly, with a major spike in 2016 and other substantial forest loss to fires in 2003, 2007, and 2015 (@fig-bardeforestationprimary). These majority of these forest fires were on the edges of the forest spanning large patches (@fig-mapforestfires).
-
-::: {#fig-forestlossbarcharts_PA layout="[50,-2,50]"}
+::: {#fig-forestlossbarcharts_PA layout="[48,-2,48]" fig-pos='H'}
 
 ![Annual rates of primary forest loss within protected areas. The total area of primary forest in these areas is 4.72 Mha.](../code/results/final_plots/deforestation_protected_areas.png){#fig-bardeforestationprotected}
 
@@ -36,25 +32,66 @@ Protected areas cover 6.24 Mha, of which 0.08 Mha are secondary forest and 4.72 
 Deforestation within protected areas, with the peak year in 2016.
 :::
 
-![In this protected area it is clearly visible, that forest fires (red) are the main drivers of deforestation within protected areas. Large forest fires like these are the cause of the outlier year 2016.](../code/results/maps/deforestation_protected_areas_forest_fires.png){#fig-mapforestfires width="100%"}
+![Large areas in the Malaysian part of Borneo where logging activities are penetrating deep into the primary forest.](../code/results/maps/primary_deforestation.png){#fig-map_deforestation_primary fig-pos='H' width="95%"}
+
+Protected areas cover 6.24 Mha, of which 0.08 Mha is secondary and 4.72 Mha primary forest. Within protected areas, the main reason for forest loss were fires, regardless of the classification as primary or secondary forest. Forest fire and logging rates are similar (@fig-forestlossbarcharts_PA). This is remarkable given that secondary forests accounted for a massively smaller proportion of the total area of PAs. Logging in protected areas occurred very limited with an average of ~2,500 ha per year being logged. However, forest fires occurred irregularly, with a major spike in 2016 and other substantial forest fire loss in 2003, 2007, and 2015 (@fig-bardeforestationprimary). The majority of these large forest fires were on the edges of the forest spanning large patches (@fig-mapforestfires).
 
 
-## Oil Palm
+\newpage
 
-![.](../code/results/final_plots/oilpalm_overview.png){#fig-ba_opoverview}
+![In this protected area it is clearly visible, that forest fires are the main drivers of deforestation within protected areas. Large forest fires like these are the cause of the outlier year 2016.](../code/results/maps/deforestation_protected_areas_forest_fires.png){#fig-mapforestfires fig-pos='H'}
+
+## Oil palm
+
+Between 2001 and 2017 a total of 3.92 Mha new oil palm plantations were detected. Comparable amounts were found on non-forested areas (1.46 Mha) and secondary forests (1.74 Mha), however, only about half as much was found on primary forests (0.71 Mha). While from 2001-2008 ~0.15 Mha new plantations were recorded annualy, there was almost twice as much in the following years with about 0.3 Mha per year. After the maximum value of 0.45 Mha in 2015, the newly discovered plantations decreased slightly in the most recent available years (@fig-bar_opoverview). More than half (2.37 Mha) of the new oil palm plantations occurred subsequently to deforestation (@fig-bar_opdeforestation). Fires before new oil palm plantations were discovered scarcely (0.07 Mha; annex IX).
+
+::: {#fig-barchart_op layout="[50,-2,50]"}
+![Overview of where new oil palm plantations were detected.](../code/results/final_plots/oilpalm_overview.png){#fig-bar_opoverview}
+
+
+![Newly detected oil palm plantations after deforestation.](../code/results/final_plots/new_oil_palm_after_deforestation.png){#fig-bar_opdeforestation}
+
+New oil palm plantations where they occur (**a**) and the portion which is found after deforestation (**b**).
+:::
+
+New industrial oil palm plantations are emerging in large areas where they can be easily identified with their distinct rectangular patterns, and to a lesser extent, small clusters are also evident. There are some typical rectangular plantation areas classified as deforested (at least 4 years before the last oil palm survey year) where oil palm was not recorded to the edge of these areas. (@fig-map_deforestation_op_fires).
+
+
+![Large deforestation areas are found on and nearby newly detected oil palm data. This extract also shows one of the largest oil palm plantations on previous primary forest. Some small-scale fires are visible in the southwest part of the map.](../code/results/maps/deforestation_op_fires.png){#fig-map_deforestation_op_fires}
 
 
 
-![Large deforestation areas are found on and nearby newly detected oilpalm data. This extract also shows one of the largest oil palm plantations on previous primary forest.](../code/results/maps/deforestation_op_fires.png){#fig-map_deforestation_op_fires}
+
+### RSPO {#sec-resultsrspo}
+
+Except for the outlier years of 2015 and 2016, new oil palm discoveries in uncertified RSPO concessions were similar, despite the smaller total area of them. RSPO concessions accounted for 27.8% (0.47 Mha) of all Malaysian oil palm plantations (1.69 Mha), divided into 15.8% certified (0.27 Mha) and 12.0% uncertified (0.19 million ha) concessions. A noticeable difference is that 1.6% of certified areas are located on primary forest of 2001, compared to 6.4% for the uncertified concessions. The certifications were mainly issued in areas where palm oil was already cultivated before the introduction of the RSPO label (@fig-RSPO_newop).
+
+::: {#fig-RSPO_newop layout="[50,-2,50]"}
+![Amount of newly detected oil palm plantations within RSPO certified concessions. Most of the oil palm plantations already existed in the year 2000.](../code/results/final_plots/oil_palm_in_RSPO_certified_regions.png){#fig-RSPO_opcert}
 
 
+![Amount of newly detected oil palm plantations within RSPO uncertified concessions. Besides the majority being already used as oil palm plantations.](../code/results/final_plots/oil_palm_in_RSPO_uncertified_regions.png){#fig-RSPO_opnocert}
+
+Newly discovered oil palm in (**a**) certified and (**b**) uncertified RSPO concessions (status 2023).
+:::
+
+The highest primary forest loss rates within RSPO certified concessions occured in the years 2002 (1000 ha) and 2004 (1080 ha). While around 200 hectares of primary forest were still being cut down each year until 2010, rates have sharply dropped to almost zero (@fig-RSPO_primaryloss). In uncertified concessions, two-thirds of primary forest area was lost, with the peak years being 2009 (2570 ha) and 2012 (4125 ha; @fig-RSPO_secondaryloss). Whereas secondary forest loss showed elevated deforestation rates from 2012 onwards in certified concessions compared with the previous decade, the rates in the uncertified concessions were at a continuous level (see annex VII).
 
 
+::: {#fig-RSPO_forestloss layout="[50,-2,50]" fig-pos="H"}
+![Rates of primary forest loss within certified RSPO concessions, with most forest loss occurring before 2007 and halting from 2011.](../code/results/final_plots/RSPO_certified_primary_loss.png){#fig-RSPO_primaryloss}
 
+
+![Rates of primary forest loss within uncertified RSPO concessions, with most occurring between 2008 and 2013.](../code/results/final_plots/RSPO_uncertified_primary_loss.png){#fig-RSPO_secondaryloss}
+
+Difference between primary forest loss rates in (**a**) certified and (**b**) uncertified RSPO concessions.
+:::
 
 
 
 ## Infrastructure
+
+The built up areas have increased by 110% from 10,332 km\textsuperscript{2} in 2000 to a total of 21,729 km\textsuperscript{2} in 2020. There was only modest overlap (0.8%) with forest loss in primary forests from built up areas in 2000, and more substantial (17.7%) with other dense vegetation areas (@fig-forestloss_built_up). These are located either near existing built up areas (annex IV) or on sites where oil palm was previously grown.
 
 ::: {#fig-forestloss_built_up layout-ncol=2}
 ![Location of existing built-up areas in 2000.](../code/results/final_plots/pie_existing_built_up.png){#fig-forestloss_pie_existing_built_up}
@@ -64,25 +101,11 @@ Deforestation within protected areas, with the peak year in 2016.
 The built-up area within the study period has more than doubled to a total of 21,789 km\textsuperscript{2}.
 :::
 
-The built up areas have increased by 110% from 10,332 km\textsuperscript{2} in 2000 to a total of 21,729 km\textsuperscript{2} in 2020. There was only modest overlap (0.8%) with forest loss in primary forests from built up areas in 2000, and more substantial (17.7%) with other dense vegetation areas. Looking at the maps, these can be attributed mainly to maintenance work and the corresponding cutting back of adjacent vegetation, as well on a smaller scale to the clearing of oil palm plantations for replanting. Annex III provides an representative example.
+### Primary forest loss
+
+Spatial proximity to infrastructure has a direct impact on deforestation rates, with more than 93.0% of deforestation occurring within 2000m. It is evident, that new infrastructure has a higher impact on primary forest loss than existing. Over 90% of deforestation happened within 2000 meters of new infrastructure, which only accounts for 57.3 % of all primary forest area. This ratio, which is about a factor of 1.6, increases to a factor of up to 4 within a distance of 100 meters (@tbl-buffer_primary). It can also be said that new infrastructure is built within primary forests, as these buffers cover more primary forest area than those of existing infrastructure (@fig-primary_buffer). This occurs a lot within the inland primary forest of Malaysia (@fig-map_deforestation_primary). In addition, new infrastructure lost 22.3% (100 m) and 14.9% (200 m) more forest cover than existing infrastructure. 
 
 ![The x-axis shows the primary forest area that falls within the buffer distance. The y-axis shows the amount of primary forest loss. This shows the relationship of infrastructure proximity for **a)** total built-up area 2020 (assumed that no year 2000 areas were removed), **b)** built-up area in the year 2000 and **c)** newly built-up areas between 2000 and 2020.](../code/results/final_plots/deforestation_buffer_primary_forest.png){#fig-primary_buffer}
-
-
-![Composition of vegetated areas on Borneo at the start of the study period.](../code/results/final_plots/op_buffer.png){#fig-op_buffer}
-
-
-
-
-
-![Typical deforestation patterns in eastern Borneo with a few large areas of deforestation inland, smaller scale near the coast, and a clear delineation to protected area with very little forest loss.](../code/results/maps/deforestation_patterns.png){#fig-mapdeforestation width="100%"}
-
-
-
-
-
-
-
 
 | **Buffer** |   |                    |    **total**    |                |   |                    |   **existing**  |                |   |                    |     **new**     |                |
 |-----------:|---|:------------------:|:---------------:|:--------------:|:-:|:------------------:|:---------------:|:--------------:|:-:|:------------------:|:---------------:|:--------------:|
@@ -95,14 +118,20 @@ The built up areas have increased by 110% from 10,332 km\textsuperscript{2} in 2
 |  **2000m** |   |        57.3        |       25.2      |      93.0      |   |        41.5        |       26.0      |      69.5      |   |        57.3        |       24.7      |      91.2      |
 
 : 
-The percentages of primary forest loss are calculated within the confines of the primary forest that lies within certain buffer distances. The exposure of the primary forest to deforestation intensifies as its proximity to infrastructure increases. {#tbl-buffer_primary}
+Percentages of primary forest loss within buffer distances from the total primary forest area. The data is categorized into three sections: primary forest (portion of the total primary forest covered by the buffer), loss buffer (portion of forest loss within total primary forest within buffer area), and loss total (portion of the loss within buffer from the total primary forest loss). This is done for **i)** _total_ infrastructure in 2020 (assuming no year 2000 built-up area was removed), **ii)** _existing_ (year 2000) built up area and **iii)** _new_ built-up area (2001 - 2020). {#tbl-buffer_primary}
 
 
+### Oil palm
 
+Similarly to primary forest loss, proximity to infrastructure is linked to new oil palm occurrences. 98.8% of new oil palms are located within 1000 m of infrastructure (@tbl-buffer_op). In addition, there are more new oil palm plantations established within 1000 m of newly developed areas than within 1000 m of existing infrastructure (@fig-op_buffer). 
+
+![Composition of vegetated areas on Borneo at the start of the study period.](../code/results/final_plots/op_buffer.png){#fig-op_buffer}
+
+\newpage
 
 | **Buffer** |   |                    |     **total**     |              |   |                    |    **existing**   |              |   |                    |      **new**      |              |
 |-----------:|---|:------------------:|:-----------------:|:------------:|:-:|:------------------:|:-----------------:|:------------:|:-:|:------------------:|:-----------------:|:------------:|
-|            |   | **area of Borneo** | **new OP buffer** | **total OP** |   | **area of Borneo** | **new OP buffer** | **total OP** |   | **area of Borneo** | **new OP buffer** | **total OP** |
+|            |   | **area of Bor.**| **OP buffer** | **total OP** |   | **area of Bor.** | **OP buffer** | **total OP** |   | **area of Bor.** | **OP buffer** | **total OP** |
 |            |   |                    |                   |              |   |                    |                   |              |   |                    |                   |              |
 |   **100m** |   |        11.0        |        15.5       |     31.7     |   |         5.1        |        11.4       |     10.7     |   |         7.8        |        16.9       |     24.6     |
 |   **200m** |   |        21.2        |        14.6       |     57.7     |   |        10.5        |        11.4       |     22.2     |   |        16.6        |        15.6       |     48.0     |
@@ -110,12 +139,12 @@ The percentages of primary forest loss are calculated within the confines of the
 |  **1000m** |   |        57.9        |        9.2        |     98.8     |   |        41.1        |        9.4        |     71.6     |   |        52.6        |        9.8        |     96.1     |
 |  **2000m** |   |        73.3        |        7.3        |     99.9     |   |        60.6        |        8.0        |     90.3     |   |        69.3        |        7.7        |     99.7     |
 
-: Percentages of new and existing oil palm (OP) plantations within buffer distances from the total area of Borneo. The data is categorized into three sections: area of Borneo (portion of the total Bornean Area covered by the buffer), new OP buffer (portion newly detected oil palm from 2001 - 2017 within buffer area), and total OP (portion newly detected oil palm from 2001 - 2017 from all new oil palm area). This is done for **i)** _total_ infrastructure in 2020 (assuming no year 2000 built-up area was removed), **ii)** _existing_ (year 2000) built up area and **iii)** _new_ built-up area (2001 - 2020). {#tbl-buffer_op}
-
-@tbl-buffer_op
-@Tbl-buffer_op
-[table @tbl-buffer_op]
+: Percentages of new and existing oil palm (OP) plantations within buffer distances from the total area of Borneo. The data is categorized into three sections: area of Borneo (portion of the total Bornean Area covered by the buffer; excluding buffer areas that lap over the study extent), new OP buffer (portion newly detected oil palm from 2001 - 2017 within buffer area), and total OP (portion newly detected oil palm from 2001 - 2017 from all new oil palm area). This is done for **i)** _total_ infrastructure in 2020 (assuming no year 2000 built-up area was removed), **ii)** _existing_ (year 2000) built up area and **iii)** _new_ built-up area (2001 - 2020). {#tbl-buffer_op}
 
 
+## Cropland
 
-Additional map extracts are provided in Appendix 3. For best data exploration, visit _link to storymap_.
+The land use for non-woody crops increased by 60% from 0.2 Mha in 2003 to 0.33 Mha in 2019. A quarter of the expansion was at the expense of previous forest loss (@fig-croplands).
+
+![Amount of consisten croplands of shrubby crops.](04_literature_review_files/croplands.png){#fig-croplands}
+

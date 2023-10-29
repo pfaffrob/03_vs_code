@@ -13,6 +13,8 @@ book:
     - text/06_results.qmd
     - text/07_discussion.qmd
     - text/08_annex.qmd
+
+
 bibliography: bibliography/BA.bib
 csl: bibliography/APA_7th.csl
 filters: [remove_title.lua]
@@ -50,6 +52,7 @@ header-includes:
   - \usepackage{chngcntr}
   - \counterwithout{figure}{chapter}
   - \counterwithout{table}{chapter}
+
 
 
 nocite: |
